@@ -1,5 +1,11 @@
 # Grafyx
 
+## 1.0.2
+
+### Patch Changes
+
+- Point the published repository and homepage metadata at `MhamedR/Grafyx`.
+
 ## 1.0.1
 
 ### Patch Changes
