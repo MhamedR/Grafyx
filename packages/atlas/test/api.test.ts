@@ -1,5 +1,5 @@
 import {test} from 'node:test';
-import {LENSES, atlasEdgeId, extractProject, isLens, parseCommand} from 'grafyx-atlas';
+import {LENSES, atlasEdgeId, extractProject, isLens, parseCommand} from '../src/index.js';
 import {assert} from '../../../test/assert.js';
 import {dirname, join} from 'node:path';
 import {fileURLToPath} from 'node:url';

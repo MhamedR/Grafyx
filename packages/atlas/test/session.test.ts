@@ -147,10 +147,8 @@ test('Go deeper pushes a folder snapshot and the breadcrumb climbs back', async 
 
     session.ascend(0);
     assert(session.crumbs.value.length === 0, 'the first crumb climbs to the workspace');
-    assert(
-      session.snapshot.value?.nodes.some((node) => node.id === 'grafyx'),
-      'the workspace map is restored',
-    );
+    const restored = session.snapshot.value?.nodes.some((node) => node.id === 'grafyx') ?? false;
+    assert(restored, 'the workspace map is restored');
 
     session.ascend(-1);
     assert(session.crumbs.value.length === 0, 'an invalid crumb is ignored');
