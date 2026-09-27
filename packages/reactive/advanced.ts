@@ -3,7 +3,7 @@
  *
  * These exports are intended for adapters, diagnostics, and runtime
  * extensions. Application code should use values, computeds, effects, and
- * ReactiveRuntime from `graphora` or `graphora/reactive`.
+ * ReactiveRuntime from `grafyx` or `grafyx/reactive`.
  */
 
 export {ReactiveNode, type ReactiveNodeKind, type ReactiveNodeState} from './reactive-node.js';

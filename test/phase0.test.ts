@@ -6,7 +6,7 @@ import {
   ReactiveRuntime,
   ReactiveScheduler,
   ReactiveValue,
-} from '../packages/graphora/index.js';
+} from '../packages/grafyx/index.js';
 import {assert} from './assert.js';
 
 function thrown(run: () => void): {didThrow: boolean; value: unknown} {

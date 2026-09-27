@@ -12,7 +12,7 @@ import {
   type ReactNode,
 } from 'react';
 import {createRoot} from 'react-dom/client';
-import type {ReactiveExternalStore} from 'graphora/store';
+import type {ReactiveExternalStore} from 'grafyx/store';
 import {
   CYCLE_CLEAR,
   DIRECTION_LINE,
@@ -199,7 +199,7 @@ function Picture({
         <div className="header-top">
           <div className="brand">
             <h1 className="wordmark">
-              graphora<span className="slash">/</span>atlas
+              grafyx<span className="slash">/</span>atlas
             </h1>
             <p className="root-path">{boot.root}</p>
           </div>
@@ -912,7 +912,7 @@ function Graph({
             data-private={pkg.private ? 'true' : 'false'}
             data-dragging={dragging ? 'true' : 'false'}
             data-engine={
-              !pkg.private && pkg.id === 'graphora' && selectedId === null ? 'true' : 'false'
+              !pkg.private && pkg.id === 'grafyx' && selectedId === null ? 'true' : 'false'
             }
             data-hovered={hoveredId === node.id ? 'true' : 'false'}
             aria-describedby={hoveredId === node.id ? 'atlas-tooltip' : undefined}

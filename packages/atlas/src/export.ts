@@ -87,7 +87,7 @@ export function buildExportPicture(input: {
     const scale = selected ? 1.04 : 1;
     const width = node.width * scale;
     const height = node.height * scale;
-    const copper = selected || (!pkg.private && pkg.id === 'graphora' && input.selectedId === null);
+    const copper = selected || (!pkg.private && pkg.id === 'grafyx' && input.selectedId === null);
     const shape = nodeShape(input.snapshot.kind, pkg) ?? 'package';
     nodes.push({
       id: pkg.id,
@@ -210,7 +210,7 @@ export function toDrawio(picture: ExportPicture): string {
 
   return [
     '<?xml version="1.0" encoding="UTF-8"?>',
-    '<mxfile host="graphora-atlas" type="atlas">',
+    '<mxfile host="grafyx-atlas" type="atlas">',
     `<diagram id="atlas" name="${xml(picture.name)}">`,
     `<mxGraphModel dx="${Math.round(picture.width)}" dy="${Math.round(picture.height)}" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="${Math.round(picture.width)}" pageHeight="${Math.round(picture.height)}" background="#12110e" math="0" shadow="0">`,
     '<root>',

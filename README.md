@@ -1,4 +1,4 @@
-# Graphora
+# Grafyx
 
 A framework-agnostic TypeScript library with two related subsystems:
 
@@ -7,10 +7,10 @@ A framework-agnostic TypeScript library with two related subsystems:
 
 The package is ESM-only, supports Node.js 20 and newer, and has no runtime dependencies.
 
-This repository is an npm workspace. Internal packages live under `packages/`. The published package is `graphora`.
+This repository is an npm workspace. Internal packages live under `packages/`. The published package is `grafyx`.
 
 ```bash
-npm install graphora
+npm install grafyx
 ```
 
 ```ts
@@ -21,24 +21,24 @@ import {
   ReactiveEffect,
   ReactiveRuntime,
   ReactiveValue,
-} from 'graphora';
+} from 'grafyx';
 ```
 
 Subpath imports are also published:
 
 ```ts
-import {DirectedGraph} from 'graphora/graph';
-import {ReactiveRuntime} from 'graphora/reactive';
+import {DirectedGraph} from 'grafyx/graph';
+import {ReactiveRuntime} from 'grafyx/reactive';
 ```
 
 Integration subpaths have no runtime dependencies:
 
-| Subpath                  | Purpose                                            |
-| ------------------------ | -------------------------------------------------- |
-| `graphora/store`         | Stores for Angular, React, Vue, Svelte, and Solid  |
-| `graphora/opentelemetry` | batches and computations as OpenTelemetry spans    |
-| `graphora/inspector`     | read-only inspection tools and MCP adapter helpers |
-| `graphora/devtools`      | transport-agnostic devtools message bridge         |
+| Subpath                | Purpose                                            |
+| ---------------------- | -------------------------------------------------- |
+| `grafyx/store`         | Stores for Angular, React, Vue, Svelte, and Solid  |
+| `grafyx/opentelemetry` | batches and computations as OpenTelemetry spans    |
+| `grafyx/inspector`     | read-only inspection tools and MCP adapter helpers |
+| `grafyx/devtools`      | transport-agnostic devtools message bridge         |
 
 See [docs/RECIPES.md](docs/RECIPES.md) for framework, OpenTelemetry, MCP, and
 devtools setup, and [docs/API.md](docs/API.md) for the full API.
@@ -200,7 +200,7 @@ These low-level types remain available, but application code should rarely use t
 Low-level reactive primitives use the explicit advanced entry point:
 
 ```ts
-import {ReactiveNode} from 'graphora/advanced';
+import {ReactiveNode} from 'grafyx/advanced';
 ```
 
 Diagnostics (`inspect()`, `createGraphSnapshot()`) are for debugging, not the hot path.
@@ -212,12 +212,12 @@ npm test          # correctness suite (package tests + public API)
 npm run test:coverage
 npm run typecheck
 npm run lint
-npm run build     # production emit of packages/graphora, tests excluded
+npm run build     # production emit of packages/grafyx, tests excluded
 npm run package:smoke
 npm run ci        # lint + format + types + coverage + perf + build + package smoke
 npm run bench     # local performance baseline
 npm run bench:regression # executable CI performance budgets
-npm run atlas       # open graphora/atlas on this repository
+npm run atlas       # open grafyx/atlas on this repository
 ```
 
 [packages/atlas/README.md](packages/atlas/README.md) walks the map on a real project: map, impact, upstream, cycles, order, Go deeper, and export.

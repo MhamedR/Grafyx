@@ -3,7 +3,7 @@
 ## Supported versions
 
 Security fixes are provided for the latest published major version of
-`graphora`.
+`grafyx`.
 
 ## Reporting a vulnerability
 
@@ -17,7 +17,7 @@ mitigation. Reports will be acknowledged as soon as they can be triaged.
 
 ## Scope
 
-Graphora executes application-provided callbacks synchronously. Callbacks
+Grafyx executes application-provided callbacks synchronously. Callbacks
 are trusted code and are not sandboxed. Consumers exposing graph mutation or
 diagnostic APIs across a trust boundary must implement their own
 authentication, authorization, quotas, and payload redaction.

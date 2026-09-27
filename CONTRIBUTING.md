@@ -36,9 +36,9 @@ Every bug fix should include a regression test. Public API changes must update
 
 ## Public API changes
 
-Application APIs belong in `graphora`, `graphora/graph`, or
-`graphora/reactive`. Low-level extension primitives belong in
-`graphora/advanced`. Avoid exporting implementation details from the
+Application APIs belong in `grafyx`, `grafyx/graph`, or
+`grafyx/reactive`. Low-level extension primitives belong in
+`grafyx/advanced`. Avoid exporting implementation details from the
 package root.
 
 ## Changesets

@@ -6,7 +6,7 @@ import {spawnSync} from 'node:child_process';
 
 const root = dirname(dirname(fileURLToPath(import.meta.url)));
 const npm = process.platform === 'win32' ? 'npm.cmd' : 'npm';
-const temporaryDirectory = await mkdtemp(join(tmpdir(), 'graphora-smoke-'));
+const temporaryDirectory = await mkdtemp(join(tmpdir(), 'grafyx-smoke-'));
 
 function run(command, arguments_, cwd) {
   const result = spawnSync(command, arguments_, {
@@ -29,7 +29,7 @@ function run(command, arguments_, cwd) {
 try {
   const packOutput = run(
     npm,
-    ['pack', '--workspace', 'graphora', '--pack-destination', temporaryDirectory, '--json'],
+    ['pack', '--workspace', 'grafyx', '--pack-destination', temporaryDirectory, '--json'],
     root,
   );
   const [packed] = JSON.parse(packOutput);
@@ -48,10 +48,10 @@ try {
   await writeFile(
     join(temporaryDirectory, 'consumer.mjs'),
     `
-import {DirectedGraph, Node, ReactiveComputed, ReactiveRuntime, ReactiveValue} from 'graphora';
-import {hasPath} from 'graphora/graph';
-import {ManualEffectScheduler} from 'graphora/reactive';
-import {ReactiveNode} from 'graphora/advanced';
+import {DirectedGraph, Node, ReactiveComputed, ReactiveRuntime, ReactiveValue} from 'grafyx';
+import {hasPath} from 'grafyx/graph';
+import {ManualEffectScheduler} from 'grafyx/reactive';
+import {ReactiveNode} from 'grafyx/advanced';
 
 const graph = new DirectedGraph();
 graph.addNode(new Node('a'));
@@ -70,10 +70,10 @@ if (!(new ManualEffectScheduler()) || !(new ReactiveNode('advanced'))) {
   throw new Error('Packed subpath smoke test failed.');
 }
 
-const {createExternalStore} = await import('graphora/store');
-const {createInspectorTools, toMcpTools} = await import('graphora/inspector');
-const {createDevtoolsBridge} = await import('graphora/devtools');
-const {createOpenTelemetryPlugin} = await import('graphora/opentelemetry');
+const {createExternalStore} = await import('grafyx/store');
+const {createInspectorTools, toMcpTools} = await import('grafyx/inspector');
+const {createDevtoolsBridge} = await import('grafyx/devtools');
+const {createOpenTelemetryPlugin} = await import('grafyx/opentelemetry');
 
 const store = createExternalStore(runtime, doubled);
 const tools = createInspectorTools(runtime);
@@ -91,13 +91,13 @@ if (store.getSnapshot() !== 4 || toMcpTools(tools).length !== 6 || messages[0]?.
   await writeFile(
     join(temporaryDirectory, 'consumer.ts'),
     `
-import {DirectedGraph, Node, ReactiveRuntime, ReactiveValue} from 'graphora';
-import type {ReactiveRuntimeInspection} from 'graphora/reactive';
-import type {ReactiveNodeKind} from 'graphora/advanced';
-import {createExternalStore, type ReactiveExternalStore} from 'graphora/store';
-import type {McpToolResult} from 'graphora/inspector';
-import type {DevtoolsOutgoingMessage} from 'graphora/devtools';
-import type {OpenTelemetrySpanLike} from 'graphora/opentelemetry';
+import {DirectedGraph, Node, ReactiveRuntime, ReactiveValue} from 'grafyx';
+import type {ReactiveRuntimeInspection} from 'grafyx/reactive';
+import type {ReactiveNodeKind} from 'grafyx/advanced';
+import {createExternalStore, type ReactiveExternalStore} from 'grafyx/store';
+import type {McpToolResult} from 'grafyx/inspector';
+import type {DevtoolsOutgoingMessage} from 'grafyx/devtools';
+import type {OpenTelemetrySpanLike} from 'grafyx/opentelemetry';
 
 const graph = new DirectedGraph<{name: string}>();
 graph.addNode(new Node('user', {name: 'Ada'}));
@@ -144,7 +144,7 @@ void span;
   );
 
   console.log(
-    `Packed graphora smoke test passed (${packed.size} bytes packed, ${packed.unpackedSize} bytes unpacked).`,
+    `Packed grafyx smoke test passed (${packed.size} bytes packed, ${packed.unpackedSize} bytes unpacked).`,
   );
 } finally {
   await rm(temporaryDirectory, {recursive: true, force: true});

@@ -1,5 +1,5 @@
 /**
- * Framework-neutral store adapters for graphora.
+ * Framework-neutral store adapters for grafyx.
  */
 
 export * from '../integrations/store.js';

@@ -1,10 +1,10 @@
-# graphora/atlas
+# grafyx/atlas
 
 **A reactive, animated map of software structure.**
 
-graphora/atlas scans a project and draws it as a directed graph: which parts must exist before which others, what a change will reach, what a part stands on, where the order is impossible, and the schedule that falls out of it. It runs as a local web app and exports what you see to Draw.io, PDF, or JPEG.
+grafyx/atlas scans a project and draws it as a directed graph: which parts must exist before which others, what a change will reach, what a part stands on, where the order is impossible, and the schedule that falls out of it. It runs as a local web app and exports what you see to Draw.io, PDF, or JPEG.
 
-![graphora/atlas: start it, explore the map, check impact and upstream, cycles and order, go deeper, and export](https://raw.githubusercontent.com/MhamedR/Graphora/main/packages/atlas/docs/demo.gif)
+![grafyx/atlas: start it, explore the map, check impact and upstream, cycles and order, go deeper, and export](https://raw.githubusercontent.com/MhamedR/Graphora/main/packages/atlas/docs/demo.gif)
 
 The pictures in this guide are the `src/app` folder of an Angular front end (`rag-frontend`). Every screenshot comes from that project, except the loop under [Cycles](#cycles).
 
@@ -44,51 +44,51 @@ A dependency list tells you what imports what. It does not tell you what order t
 - **Inspect anything.** Hover a node for its files and edges; click it to pin those details in the rail.
 - **Export** the current picture to Draw.io (editable), PDF, or JPEG.
 - **Keyboard first.** A command box (`services impact`), type-to-filter, and arrow-key navigation along edges.
-- **Library API.** The extractors and graph algorithms behind the UI are exported from `graphora-atlas`.
+- **Library API.** The extractors and graph algorithms behind the UI are exported from `grafyx-atlas`.
 
 ## Quick start
 
 Atlas needs Node.js 20 or newer. From the project you want to map:
 
 ```bash
-npx graphora-atlas
+npx grafyx-atlas
 ```
 
 That scans the current directory, serves the map at `http://127.0.0.1:4318`, and opens your browser. Point it somewhere else with `--root`:
 
 ```bash
-npx graphora-atlas --root ./src/app
+npx grafyx-atlas --root ./src/app
 ```
 
 To keep it in a project, install it as a dev dependency and add a script:
 
 ```bash
-npm install --save-dev graphora-atlas
+npm install --save-dev grafyx-atlas
 ```
 
 ```json
 {
   "scripts": {
-    "atlas": "graphora-atlas --root ./src"
+    "atlas": "grafyx-atlas --root ./src"
   }
 }
 ```
 
 Refresh the page to rescan. The server reads the tree again on every load.
 
-### From a clone of Graphora
+### From a clone of Grafyx
 
 ```bash
 git clone https://github.com/MhamedR/Graphora.git
 cd Graphora
 npm ci
 npm run build
-npm run dev -w graphora-atlas -- --root /absolute/path/to/your-app/src/app
+npm run dev -w grafyx-atlas -- --root /absolute/path/to/your-app/src/app
 ```
 
-`npm run build` compiles graphora, which the map imports. Atlas stops with `Build graphora before starting atlas: npm run build` if you skip it. Pass the root as an absolute path here: npm runs the script from `packages/atlas`, so a relative `--root` resolves from there.
+`npm run build` compiles grafyx, which the map imports. Atlas stops with `Build grafyx before starting atlas: npm run build` if you skip it. Pass the root as an absolute path here: npm runs the script from `packages/atlas`, so a relative `--root` resolves from there.
 
-`npm run atlas` opens the Graphora repository itself, which is a workspace, so you get the package map. It does not forward `--root`.
+`npm run atlas` opens the Grafyx repository itself, which is a workspace, so you get the package map. It does not forward `--root`.
 
 ## How to read the map
 
@@ -212,7 +212,7 @@ In the command box, either word can come first and both are optional. A part nam
 ## CLI options
 
 ```bash
-graphora-atlas [--root <path>] [--port <number>] [--no-open]
+grafyx-atlas [--root <path>] [--port <number>] [--no-open]
 ```
 
 | Option            | Default                  | Description                                                                       |
@@ -224,7 +224,7 @@ graphora-atlas [--root <path>] [--port <number>] [--no-open]
 
 The terminal prints the URL and the resolved root when the server starts.
 
-From a clone, `npm run dev -w graphora-atlas -- <options>` takes the same options, but `--root` defaults to the Graphora repository and resolves from `packages/atlas`.
+From a clone, `npm run dev -w grafyx-atlas -- <options>` takes the same options, but `--root` defaults to the Grafyx repository and resolves from `packages/atlas`.
 
 ## What Atlas reads
 
@@ -251,17 +251,10 @@ flowchart LR
 
 ## Library API
 
-The package entry, `graphora-atlas`, exports the extractors and graph algorithms behind the map. The dev server and the UI stay behind their own entry points, so importing the library does not start a server or load the browser code. It is an ES module with TypeScript declarations.
+The package entry, `grafyx-atlas`, exports the extractors and graph algorithms behind the map. The dev server and the UI stay behind their own entry points, so importing the library does not start a server or load the browser code. It is an ES module with TypeScript declarations.
 
 ```ts
-import {
-  buildPackageGraph,
-  cycles,
-  downstream,
-  extractProject,
-  order,
-  upstream,
-} from 'graphora-atlas';
+import {buildPackageGraph, cycles, downstream, extractProject, order, upstream} from 'grafyx-atlas';
 
 const snapshot = await extractProject('/absolute/path/to/rag-frontend/src/app');
 const graph = buildPackageGraph(snapshot);
@@ -301,8 +294,8 @@ The model types (`AtlasSnapshot`, `PackageNode`, `AtlasEdge`, `Lens`, …) and c
 From the repository root:
 
 ```bash
-npm run build                                               # graphora, which atlas imports
-npm run build -w graphora-atlas                             # the published dist: library, CLI, prebuilt UI
+npm run build                                               # grafyx, which atlas imports
+npm run build -w grafyx-atlas                             # the published dist: library, CLI, prebuilt UI
 node --import tsx --test packages/atlas/test/*.test.ts      # atlas tests
 npx tsc --noEmit -p packages/atlas/tsconfig.json            # atlas type check
 npm test                                                    # build, then every unit test

@@ -1,7 +1,7 @@
 # Recipes
 
-Integration recipes for `graphora`. None of these integrations add runtime
-dependencies to `graphora`; the host application installs the framework or
+Integration recipes for `grafyx`. None of these integrations add runtime
+dependencies to `grafyx`; the host application installs the framework or
 SDK it already uses.
 
 ## Writing a plugin
@@ -11,7 +11,7 @@ Cleanup runs on `uninstall()` or `runtime.dispose()`, in reverse installation
 order.
 
 ```ts
-import {ReactiveRuntime, type ReactiveRuntimePlugin} from 'graphora';
+import {ReactiveRuntime, type ReactiveRuntimePlugin} from 'grafyx';
 
 const slowComputationLogger = (thresholdMs: number): ReactiveRuntimePlugin => ({
   name: 'slow-computation-logger',
@@ -39,7 +39,7 @@ Create one store per source and reuse it across renders.
 
 ```tsx
 import {useSyncExternalStore} from 'react';
-import {createExternalStore, createMicrotaskScheduler} from 'graphora/store';
+import {createExternalStore, createMicrotaskScheduler} from 'grafyx/store';
 
 const scheduler = createMicrotaskScheduler();
 const totalStore = createExternalStore(runtime, total, {scheduler});
@@ -59,7 +59,7 @@ it.
 
 ```ts
 import {customRef, onScopeDispose, type Ref} from 'vue';
-import type {ReactiveExternalStore} from 'graphora/store';
+import type {ReactiveExternalStore} from 'grafyx/store';
 
 export function useReactive<T>(store: ReactiveExternalStore<T>): Readonly<Ref<T>> {
   return customRef<T>((track, trigger) => {
@@ -71,7 +71,7 @@ export function useReactive<T>(store: ReactiveExternalStore<T>): Readonly<Ref<T>
         return store.getSnapshot();
       },
       set() {
-        throw new Error('graphora stores are read-only; write to the source value.');
+        throw new Error('grafyx stores are read-only; write to the source value.');
       },
     };
   });
@@ -85,7 +85,7 @@ export function useReactive<T>(store: ReactiveExternalStore<T>): Readonly<Ref<T>
 
 ```svelte
 <script lang="ts">
-  import {createExternalStore, createMicrotaskScheduler, toSvelteStore} from 'graphora/store';
+  import {createExternalStore, createMicrotaskScheduler, toSvelteStore} from 'grafyx/store';
 
   const total$ = toSvelteStore(
     createExternalStore(runtime, total, {scheduler: createMicrotaskScheduler()}),
@@ -109,11 +109,11 @@ const totalSignal = from<number>((set) => {
 ## OpenTelemetry
 
 The adapter accepts any tracer with the OpenTelemetry `startSpan` shape, so
-`@opentelemetry/api` stays in your dependencies, not graphora's.
+`@opentelemetry/api` stays in your dependencies, not grafyx's.
 
 ```ts
 import {context, trace} from '@opentelemetry/api';
-import {createOpenTelemetryPlugin} from 'graphora/opentelemetry';
+import {createOpenTelemetryPlugin} from 'grafyx/opentelemetry';
 
 runtime.use(
   createOpenTelemetryPlugin({
@@ -125,28 +125,28 @@ runtime.use(
 
 It records these spans:
 
-| Span                | Covers                         | Key attributes                                                  |
-| ------------------- | ------------------------------ | --------------------------------------------------------------- |
-| `graphora.batch`    | an outermost `runtime.batch()` | `graphora.batch.changed_nodes`, `graphora.batch.deferred_tasks` |
-| `graphora.computed` | one computed evaluation        | `graphora.node.id`, `graphora.value_changed`                    |
-| `graphora.effect`   | one effect run                 | `graphora.node.id`                                              |
+| Span              | Covers                         | Key attributes                                              |
+| ----------------- | ------------------------------ | ----------------------------------------------------------- |
+| `grafyx.batch`    | an outermost `runtime.batch()` | `grafyx.batch.changed_nodes`, `grafyx.batch.deferred_tasks` |
+| `grafyx.computed` | one computed evaluation        | `grafyx.node.id`, `grafyx.value_changed`                    |
+| `grafyx.effect`   | one effect run                 | `grafyx.node.id`                                            |
 
 Computations nest under the batch or computation that triggered them. Source
 changes and invalidations become span events carrying the causal path, for
-example `graphora.path = "price > subtotal > total"`. Failed computations
+example `grafyx.path = "price > subtotal > total"`. Failed computations
 set the span status to `ERROR` with the error message. Pass
 `recordInvalidations: false` to keep spans small on very wide graphs.
 
 ## MCP server
 
-`graphora/inspector` provides read-only tools and converts them to the MCP
+`grafyx/inspector` provides read-only tools and converts them to the MCP
 tool and result shapes. Wire them into the official SDK's low-level server:
 
 ```ts
 import {Server} from '@modelcontextprotocol/sdk/server/index.js';
 import {StdioServerTransport} from '@modelcontextprotocol/sdk/server/stdio.js';
 import {CallToolRequestSchema, ListToolsRequestSchema} from '@modelcontextprotocol/sdk/types.js';
-import {callMcpTool, createInspectorTools, toMcpTools} from 'graphora/inspector';
+import {callMcpTool, createInspectorTools, toMcpTools} from 'grafyx/inspector';
 
 const tools = createInspectorTools(runtime, {maxResults: 200});
 const server = new Server({name: 'my-app-graph', version: '1.0.0'}, {capabilities: {tools: {}}});
@@ -160,16 +160,16 @@ await server.connect(new StdioServerTransport());
 The runtime lives in your process, so the MCP server must too. Stdio suits
 scripts and CLIs; long-running services should use the SDK's Streamable HTTP
 transport. Create the runtime with a `traceBufferSize` so
-`graphora_trace` has history to return.
+`grafyx_trace` has history to return.
 
-| Tool                    | Purpose                                               |
-| ----------------------- | ----------------------------------------------------- |
-| `graphora_describe`     | runtime state, graph metrics, plugins, schema version |
-| `graphora_list_nodes`   | nodes filtered by kind, dirty state, or ID prefix     |
-| `graphora_explain`      | one node's state and its latest invalidation path     |
-| `graphora_dependencies` | transitive upstream or downstream nodes with depth    |
-| `graphora_trace`        | retained events after a cursor, by type or node       |
-| `graphora_snapshot`     | bounded snapshot of nodes and edges                   |
+| Tool                  | Purpose                                               |
+| --------------------- | ----------------------------------------------------- |
+| `grafyx_describe`     | runtime state, graph metrics, plugins, schema version |
+| `grafyx_list_nodes`   | nodes filtered by kind, dirty state, or ID prefix     |
+| `grafyx_explain`      | one node's state and its latest invalidation path     |
+| `grafyx_dependencies` | transitive upstream or downstream nodes with depth    |
+| `grafyx_trace`        | retained events after a cursor, by type or node       |
+| `grafyx_snapshot`     | bounded snapshot of nodes and edges                   |
 
 Every tool validates its input, is annotated `readOnlyHint: true`, and cannot
 mutate the runtime. Invalid input becomes an MCP tool error the model can read.
@@ -180,7 +180,7 @@ mutate the runtime. Invalid input becomes an MCP tool error the model can read.
 answers inspection requests.
 
 ```ts
-import {createDevtoolsBridge} from 'graphora/devtools';
+import {createDevtoolsBridge} from 'grafyx/devtools';
 
 const bridge = createDevtoolsBridge({
   runtimeId: 'checkout',
@@ -199,12 +199,12 @@ task are coalesced into a single `events` message; when the queue exceeds
 
 ```json
 {
-  "protocol": "graphora-devtools",
+  "protocol": "grafyx-devtools",
   "version": 1,
   "runtimeId": "checkout",
   "type": "request",
   "requestId": "1",
-  "tool": "graphora_explain",
+  "tool": "grafyx_explain",
   "input": {"nodeId": "total"}
 }
 ```

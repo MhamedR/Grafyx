@@ -17,50 +17,44 @@ test('extracts this workspace as a build-order graph', async () => {
       (item) => item.relation === relation && item.from === from && item.to === to,
     );
 
-  assert(ids.has('graphora-data-structures'), 'data-structures should be a node');
-  assert(ids.has('graphora-graph'), 'graph should be a node');
-  assert(ids.has('graphora-reactive'), 'reactive should be a node');
-  assert(ids.has('graphora-integrations'), 'integrations should be a node');
-  assert(ids.has('graphora'), 'graphora should be a node');
-  assert(ids.has('graphora-atlas'), 'atlas should be a node');
-  assert(!ids.has('graphora-workspace'), 'the private workspace root is not a package node');
+  assert(ids.has('grafyx-data-structures'), 'data-structures should be a node');
+  assert(ids.has('grafyx-graph'), 'graph should be a node');
+  assert(ids.has('grafyx-reactive'), 'reactive should be a node');
+  assert(ids.has('grafyx-integrations'), 'integrations should be a node');
+  assert(ids.has('grafyx'), 'grafyx should be a node');
+  assert(ids.has('grafyx-atlas'), 'atlas should be a node');
+  assert(!ids.has('grafyx-workspace'), 'the private workspace root is not a package node');
 
-  const graphora = snapshot.nodes.find((node) => node.id === 'graphora');
-  assert(graphora?.private === false, 'the published package is not private');
+  const grafyx = snapshot.nodes.find((node) => node.id === 'grafyx');
+  assert(grafyx?.private === false, 'the published package is not private');
   assert(
-    snapshot.nodes.find((node) => node.id === 'graphora-graph')?.private === true,
+    snapshot.nodes.find((node) => node.id === 'grafyx-graph')?.private === true,
     'internal packages stay private',
   );
 
   assert(
-    edge(WORKSPACE_DEPENDS, 'graphora-data-structures', 'graphora-graph'),
+    edge(WORKSPACE_DEPENDS, 'grafyx-data-structures', 'grafyx-graph'),
     'graph waits on data-structures',
   );
   assert(
-    edge(WORKSPACE_DEPENDS, 'graphora-data-structures', 'graphora-reactive'),
+    edge(WORKSPACE_DEPENDS, 'grafyx-data-structures', 'grafyx-reactive'),
     'reactive waits on data-structures',
   );
   assert(
-    edge(WORKSPACE_DEPENDS, 'graphora-reactive', 'graphora-integrations'),
+    edge(WORKSPACE_DEPENDS, 'grafyx-reactive', 'grafyx-integrations'),
     'integrations waits on reactive',
   );
+  assert(edge(WORKSPACE_DEPENDS, 'grafyx', 'grafyx-atlas'), 'atlas waits on the published package');
   assert(
-    edge(WORKSPACE_DEPENDS, 'graphora', 'graphora-atlas'),
-    'atlas waits on the published package',
-  );
-  assert(
-    !edge(WORKSPACE_DEPENDS, 'graphora-graph', 'graphora'),
-    'graphora has no npm dependency on graph',
+    !edge(WORKSPACE_DEPENDS, 'grafyx-graph', 'grafyx'),
+    'grafyx has no npm dependency on graph',
   );
 
-  assert(edge(BUNDLE_INCLUDES, 'graphora-graph', 'graphora'), 'graphora re-exports graph');
-  assert(edge(BUNDLE_INCLUDES, 'graphora-reactive', 'graphora'), 'graphora re-exports reactive');
+  assert(edge(BUNDLE_INCLUDES, 'grafyx-graph', 'grafyx'), 'grafyx re-exports graph');
+  assert(edge(BUNDLE_INCLUDES, 'grafyx-reactive', 'grafyx'), 'grafyx re-exports reactive');
+  assert(edge(BUNDLE_INCLUDES, 'grafyx-integrations', 'grafyx'), 'grafyx re-exports integrations');
   assert(
-    edge(BUNDLE_INCLUDES, 'graphora-integrations', 'graphora'),
-    'graphora re-exports integrations',
-  );
-  assert(
-    !edge(BUNDLE_INCLUDES, 'graphora-data-structures', 'graphora'),
+    !edge(BUNDLE_INCLUDES, 'grafyx-data-structures', 'grafyx'),
     'data-structures is not a direct re-export',
   );
 

@@ -1,8 +1,8 @@
 {
-  "name": "graphora-workspace",
+  "name": "grafyx-workspace",
   "version": "1.0.0",
   "private": true,
-  "description": "Workspace for the graphora TypeScript packages.",
+  "description": "Workspace for the grafyx TypeScript packages.",
   "type": "module",
   "packageManager": "npm@11.13.0",
   "engines": {
@@ -12,11 +12,11 @@
     "packages/*"
   ],
   "scripts": {
-    "dev": "tsx packages/graphora/index.ts",
-    "clean": "rm -rf dist packages/graphora/dist",
-    "build": "npm run clean && tsc -p packages/graphora/tsconfig.build.json",
+    "dev": "tsx packages/grafyx/index.ts",
+    "clean": "rm -rf dist packages/grafyx/dist",
+    "build": "npm run clean && tsc -p packages/grafyx/tsconfig.build.json",
     "typecheck": "npm run build && tsc --noEmit && tsc --noEmit -p test/tsconfig.json && tsc --noEmit -p packages/atlas/tsconfig.json",
-    "start": "node packages/graphora/dist/graphora/index.js",
+    "start": "node packages/grafyx/dist/grafyx/index.js",
     "test:queue": "tsx packages/data-structures/test/queue.test.ts",
     "test:graph": "tsx packages/graph/test/directed-graph.test.ts && tsx packages/graph/test/strongly-connected-components.test.ts",
     "test:algorithms": "tsx packages/graph/test/algorithms.test.ts",
@@ -39,7 +39,7 @@
     "ci": "npm run lint && npm run format:check && npm run typecheck && npm run test:coverage && npm run bench:regression && npm run build && npm run package:smoke",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "atlas": "npm run dev -w graphora-atlas",
+    "atlas": "npm run dev -w grafyx-atlas",
     "changeset": "changeset",
     "version-packages": "changeset version",
     "release": "npm run ci && changeset publish"

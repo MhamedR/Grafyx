@@ -167,7 +167,7 @@ export function createInspectorTools(
   const limitSchema = {type: 'integer', minimum: 1, maximum: maxResults};
 
   const describe: InspectorTool = {
-    name: 'graphora_describe',
+    name: 'grafyx_describe',
     title: 'Describe reactive runtime',
     description:
       'Returns runtime scheduler and batch state, aggregate graph metrics, installed plugins, and the event schema version.',
@@ -186,7 +186,7 @@ export function createInspectorTools(
   };
 
   const listNodes: InspectorTool = {
-    name: 'graphora_list_nodes',
+    name: 'grafyx_list_nodes',
     title: 'List reactive nodes',
     description:
       'Lists registered reactive nodes with their kind, version, dirty state, and dependency counts. Supports filtering by kind, dirty state, and ID prefix.',
@@ -225,7 +225,7 @@ export function createInspectorTools(
   };
 
   const explain: InspectorTool = {
-    name: 'graphora_explain',
+    name: 'grafyx_explain',
     title: 'Explain a reactive node',
     description:
       'Explains one node: its state, direct producers and consumers, and the source-to-node path that most recently invalidated it.',
@@ -242,7 +242,7 @@ export function createInspectorTools(
   };
 
   const dependencies: InspectorTool = {
-    name: 'graphora_dependencies',
+    name: 'grafyx_dependencies',
     title: 'Walk reactive dependencies',
     description:
       'Returns the transitive upstream producers or downstream consumers of a node, breadth first, with their distance from the node.',
@@ -306,7 +306,7 @@ export function createInspectorTools(
   };
 
   const trace: InspectorTool = {
-    name: 'graphora_trace',
+    name: 'grafyx_trace',
     title: 'Read runtime trace',
     description:
       'Returns retained runtime events after a sequence cursor, optionally filtered by event type or node ID. Requires the runtime to be created with a traceBufferSize.',
@@ -346,7 +346,7 @@ export function createInspectorTools(
   };
 
   const snapshot: InspectorTool = {
-    name: 'graphora_snapshot',
+    name: 'grafyx_snapshot',
     title: 'Snapshot reactive graph',
     description:
       'Returns a detached snapshot of reactive nodes and dependency edges, bounded by the limit.',

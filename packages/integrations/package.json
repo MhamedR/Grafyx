@@ -1,11 +1,11 @@
 {
-  "name": "graphora-integrations",
+  "name": "grafyx-integrations",
   "version": "1.0.0",
   "private": true,
-  "description": "Observability, tooling, and framework integrations for graphora.",
+  "description": "Observability, tooling, and framework integrations for grafyx.",
   "type": "module",
   "sideEffects": false,
   "dependencies": {
-    "graphora-reactive": "*"
+    "grafyx-reactive": "*"
   }
 }

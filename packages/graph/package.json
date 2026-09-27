@@ -1,5 +1,5 @@
 {
-  "name": "graphora-graph",
+  "name": "grafyx-graph",
   "version": "1.0.0",
   "private": true,
   "description": "Directed graph primitives and analysis algorithms.",
@@ -8,6 +8,6 @@
   "types": "./index.ts",
   "sideEffects": false,
   "dependencies": {
-    "graphora-data-structures": "*"
+    "grafyx-data-structures": "*"
   }
 }

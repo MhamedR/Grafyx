@@ -1,8 +1,8 @@
 {
-  "name": "graphora-data-structures",
+  "name": "grafyx-data-structures",
   "version": "1.0.0",
   "private": true,
-  "description": "Internal data structures for graphora packages.",
+  "description": "Internal data structures for grafyx packages.",
   "type": "module",
   "main": "./index.ts",
   "types": "./index.ts",

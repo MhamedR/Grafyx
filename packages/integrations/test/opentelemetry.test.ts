@@ -19,7 +19,7 @@ function createTracer(): {
 } {
   const exporter = new InMemorySpanExporter();
   const provider = new BasicTracerProvider({spanProcessors: [new SimpleSpanProcessor(exporter)]});
-  return {exporter, tracer: provider.getTracer('graphora-test')};
+  return {exporter, tracer: provider.getTracer('grafyx-test')};
 }
 
 function testBatchAndComputationSpansNest(): void {
@@ -45,9 +45,9 @@ function testBatchAndComputationSpansNest(): void {
   });
 
   const spans = exporter.getFinishedSpans();
-  const batch = spans.find((span) => span.name === 'graphora.batch');
-  const effectSpan = spans.find((span) => span.name === 'graphora.effect');
-  const computedSpan = spans.find((span) => span.name === 'graphora.computed');
+  const batch = spans.find((span) => span.name === 'grafyx.batch');
+  const effectSpan = spans.find((span) => span.name === 'grafyx.effect');
+  const computedSpan = spans.find((span) => span.name === 'grafyx.computed');
 
   ensure(batch !== undefined, 'outermost batches should produce a span');
   ensure(effectSpan !== undefined, 'effect runs should produce a span');
@@ -61,18 +61,18 @@ function testBatchAndComputationSpansNest(): void {
     'computed spans should nest under the computation that read them',
   );
   ensure(
-    computedSpan.attributes['graphora.node.id'] === 'doubled',
+    computedSpan.attributes['grafyx.node.id'] === 'doubled',
     'computation spans should identify their node',
   );
   ensure(
-    batch.attributes['graphora.batch.changed_nodes'] === 1,
+    batch.attributes['grafyx.batch.changed_nodes'] === 1,
     'batch spans should record the number of changed nodes',
   );
   ensure(
     batch.events.some(
       (event) =>
-        event.name === 'graphora.node-invalidated' &&
-        event.attributes?.['graphora.path'] === 'source > doubled',
+        event.name === 'grafyx.node-invalidated' &&
+        event.attributes?.['grafyx.path'] === 'source > doubled',
     ),
     'invalidations should be recorded on the active span with their causal path',
   );

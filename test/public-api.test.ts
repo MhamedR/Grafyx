@@ -7,24 +7,24 @@
 
 import * as graphApi from '../packages/graph/index.js';
 import * as reactiveApi from '../packages/reactive/index.js';
-import * as publicApi from '../packages/graphora/index.js';
-import * as advancedApi from '../packages/graphora/advanced.js';
-import * as opentelemetryApi from '../packages/graphora/opentelemetry.js';
-import * as inspectorApi from '../packages/graphora/inspector.js';
-import * as devtoolsApi from '../packages/graphora/devtools.js';
-import * as storeApi from '../packages/graphora/store.js';
-import type {OpenTelemetryPluginOptions} from '../packages/graphora/opentelemetry.js';
-import type {InspectorTool, McpToolResult} from '../packages/graphora/inspector.js';
-import type {DevtoolsOutgoingMessage} from '../packages/graphora/devtools.js';
-import type {ReactiveExternalStore} from '../packages/graphora/store.js';
+import * as publicApi from '../packages/grafyx/index.js';
+import * as advancedApi from '../packages/grafyx/advanced.js';
+import * as opentelemetryApi from '../packages/grafyx/opentelemetry.js';
+import * as inspectorApi from '../packages/grafyx/inspector.js';
+import * as devtoolsApi from '../packages/grafyx/devtools.js';
+import * as storeApi from '../packages/grafyx/store.js';
+import type {OpenTelemetryPluginOptions} from '../packages/grafyx/opentelemetry.js';
+import type {InspectorTool, McpToolResult} from '../packages/grafyx/inspector.js';
+import type {DevtoolsOutgoingMessage} from '../packages/grafyx/devtools.js';
+import type {ReactiveExternalStore} from '../packages/grafyx/store.js';
 import {
   DirectedGraph,
   Node,
   ReactiveRuntime,
   ReactiveValue,
   stronglyConnectedComponents,
-} from '../packages/graphora/index.js';
-import type {ReactiveNodeKind, ReactiveNodeState} from '../packages/graphora/advanced.js';
+} from '../packages/grafyx/index.js';
+import type {ReactiveNodeKind, ReactiveNodeState} from '../packages/grafyx/advanced.js';
 import {assert} from './assert.js';
 
 /**
@@ -50,7 +50,7 @@ import type {
   ReactiveRuntimeState,
   ReactiveComputationCompletedEvent,
   ReactiveTraceQuery,
-} from '../packages/graphora/index.js';
+} from '../packages/grafyx/index.js';
 
 /**
  * Runtime values exported by the graph public entry point.

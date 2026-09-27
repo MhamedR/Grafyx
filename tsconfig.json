@@ -8,7 +8,7 @@
     "packages/graph/**/*.ts",
     "packages/reactive/**/*.ts",
     "packages/integrations/**/*.ts",
-    "packages/graphora/**/*.ts",
+    "packages/grafyx/**/*.ts",
     "benchmarks/**/*.ts"
   ],
   "exclude": ["**/test/**", "**/dist/**", "node_modules"]

@@ -1,16 +1,16 @@
 # Public API
 
-Graphora is ESM-only and supports Node.js 20 and newer. Public APIs are
+Grafyx is ESM-only and supports Node.js 20 and newer. Public APIs are
 available through eight package entry points: the root, `graph`, `reactive`,
 `advanced`, and the integration subpaths `opentelemetry`, `inspector`,
 `devtools`, and `store`. Integration recipes are in [RECIPES.md](RECIPES.md).
 
-## `graphora`
+## `grafyx`
 
 The package root combines the stable graph and reactive application APIs. It
 does not export low-level reactive graph primitives.
 
-## `graphora/graph`
+## `grafyx/graph`
 
 ### Classes
 
@@ -35,7 +35,7 @@ does not export low-level reactive graph primitives.
 Algorithms return `Node<T>` instances and throw when a required node ID is
 missing. Topological sorting throws for cyclic graphs.
 
-## `graphora/reactive`
+## `grafyx/reactive`
 
 ### Application classes
 
@@ -103,7 +103,7 @@ changed edges; an edge is changed when its captured version or stale state
 changes. Diagnostic snapshots are detached values intended for debugging
 rather than hot-path execution.
 
-## `graphora/advanced`
+## `grafyx/advanced`
 
 The advanced entry point contains low-level reactive graph primitives:
 
@@ -120,31 +120,31 @@ the application API.
 
 All integrations are dependency-free and use only the public reactive API.
 
-### `graphora/opentelemetry`
+### `grafyx/opentelemetry`
 
 - `createOpenTelemetryPlugin({tracer, parentContext?, recordInvalidations?, name?})`
   exports batches and computations as spans. `tracer` is structurally typed
   against OpenTelemetry's `Tracer`.
 
-### `graphora/inspector`
+### `grafyx/inspector`
 
 - `createInspectorTools(runtime, {maxResults?})` returns six read-only tools
-  with JSON Schema input: `graphora_describe`, `graphora_list_nodes`,
-  `graphora_explain`, `graphora_dependencies`, `graphora_trace`,
-  and `graphora_snapshot`.
+  with JSON Schema input: `grafyx_describe`, `grafyx_list_nodes`,
+  `grafyx_explain`, `grafyx_dependencies`, `grafyx_trace`,
+  and `grafyx_snapshot`.
 - `callInspectorTool(tools, name, input)` validates and runs a tool, throwing
   `InspectorInputError` on invalid input.
 - `toMcpTools(tools)` and `callMcpTool(tools, params)` produce MCP `tools/list`
   definitions and `tools/call` results. Failures become `isError` results.
 
-### `graphora/devtools`
+### `grafyx/devtools`
 
 - `createDevtoolsBridge({runtimeId, send, delivery?, maxQueuedEvents?, maxResults?})`
   returns a plugin with `receive(message)`. The protocol is identified by
   `DEVTOOLS_PROTOCOL` and `DEVTOOLS_PROTOCOL_VERSION`; messages are `hello`,
   `events`, `response`, and `goodbye`, and clients send `request`.
 
-### `graphora/store`
+### `grafyx/store`
 
 - `createExternalStore(runtime, source, {id?, scheduler?})` returns
   `{subscribe, getSnapshot, listenerCount, disposed, dispose}` compatible with

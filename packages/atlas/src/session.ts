@@ -4,12 +4,12 @@
  * React reads the computed picture. It does not own the graph.
  */
 
-import {ReactiveComputed, ReactiveRuntime, ReactiveValue} from 'graphora';
+import {ReactiveComputed, ReactiveRuntime, ReactiveValue} from 'grafyx';
 import {
   createExternalStore,
   createMicrotaskScheduler,
   type ReactiveExternalStore,
-} from 'graphora/store';
+} from 'grafyx/store';
 import type {AtlasSnapshot, Lens, Viewport} from './model.js';
 import {isLens} from './model.js';
 import type {AtlasLayout, NodeOffset} from './layout.js';

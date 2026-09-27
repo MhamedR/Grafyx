@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Server and CLI for graphora/atlas.
+ * Server and CLI for grafyx/atlas.
  *
  * From a clone, the default root is this repository and the UI is bundled on
  * start. From the published package, the default root is the working
@@ -25,7 +25,7 @@ const uiDir = join(here, 'ui');
 const prebuiltUi = join(uiDir, 'app.js');
 const packaged = existsSync(prebuiltUi);
 
-const USAGE = `Usage: graphora-atlas [--root <path>] [--port <number>] [--no-open]
+const USAGE = `Usage: grafyx-atlas [--root <path>] [--port <number>] [--no-open]
 
   --root <path>    Project to map. Defaults to the current directory.
   --port <number>  Port on 127.0.0.1. Defaults to PORT, then 4318.
@@ -42,9 +42,9 @@ async function main(): Promise<void> {
 
   if (!packaged) {
     try {
-      await access(join(repoRoot, 'packages/graphora/dist/graphora/index.js'));
+      await access(join(repoRoot, 'packages/grafyx/dist/grafyx/index.js'));
     } catch {
-      console.error('Build graphora before starting atlas: npm run build');
+      console.error('Build grafyx before starting atlas: npm run build');
       process.exit(1);
     }
   }
@@ -58,7 +58,7 @@ async function main(): Promise<void> {
 
   server.listen(port, '127.0.0.1', () => {
     const url = `http://127.0.0.1:${port}`;
-    console.log(`graphora/atlas  ${url}`);
+    console.log(`grafyx/atlas  ${url}`);
     console.log(root);
     openBrowser(url);
   });
@@ -143,7 +143,7 @@ function html(boot: AtlasBoot): string {
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>graphora/atlas</title>
+    <title>grafyx/atlas</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link

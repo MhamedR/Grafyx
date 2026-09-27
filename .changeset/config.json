@@ -7,12 +7,7 @@
   "access": "public",
   "baseBranch": "main",
   "updateInternalDependencies": "patch",
-  "ignore": [
-    "graphora-data-structures",
-    "graphora-graph",
-    "graphora-integrations",
-    "graphora-reactive"
-  ],
+  "ignore": ["grafyx-data-structures", "grafyx-graph", "grafyx-integrations", "grafyx-reactive"],
   "privatePackages": {
     "version": false,
     "tag": false

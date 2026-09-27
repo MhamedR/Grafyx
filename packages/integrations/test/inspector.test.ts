@@ -50,14 +50,14 @@ function testInspectorTools(): void {
 
   ensure(
     tools.map((tool) => tool.name).join(',') ===
-      'graphora_describe,graphora_list_nodes,graphora_explain,graphora_dependencies,graphora_trace,graphora_snapshot',
+      'grafyx_describe,grafyx_list_nodes,grafyx_explain,grafyx_dependencies,grafyx_trace,grafyx_snapshot',
     'the inspector should expose a stable tool set',
   );
 
-  const describe = callInspectorTool(tools, 'graphora_describe');
+  const describe = callInspectorTool(tools, 'grafyx_describe');
   ensure(describe['schemaVersion'] === 1, 'describe should include the event schema version');
 
-  const dirty = callInspectorTool(tools, 'graphora_list_nodes', {
+  const dirty = callInspectorTool(tools, 'grafyx_list_nodes', {
     dirty: true,
     kind: 'computed',
   });
@@ -67,20 +67,20 @@ function testInspectorTools(): void {
     'list_nodes should filter by kind and dirty state',
   );
 
-  const limited = callInspectorTool(tools, 'graphora_list_nodes', {limit: 1});
+  const limited = callInspectorTool(tools, 'grafyx_list_nodes', {limit: 1});
   ensure(
     limited['truncated'] === true && limited['total'] === 5,
     'list_nodes should report truncation',
   );
 
-  const explanation = callInspectorTool(tools, 'graphora_explain', {nodeId: 'render'});
+  const explanation = callInspectorTool(tools, 'grafyx_explain', {nodeId: 'render'});
   ensure(
     JSON.stringify((explanation['invalidation'] as {path: string[]}).path) ===
       '["price","subtotal","total","render"]',
     'explain should return the causal invalidation path',
   );
 
-  const upstream = callInspectorTool(tools, 'graphora_dependencies', {
+  const upstream = callInspectorTool(tools, 'grafyx_dependencies', {
     nodeId: 'render',
     direction: 'upstream',
   });
@@ -95,27 +95,27 @@ function testInspectorTools(): void {
     'dependencies should walk producers breadth first with depth',
   );
 
-  const shallow = callInspectorTool(tools, 'graphora_dependencies', {
+  const shallow = callInspectorTool(tools, 'grafyx_dependencies', {
     nodeId: 'price',
     direction: 'downstream',
     maxDepth: 1,
   });
   ensure((shallow['nodes'] as unknown[]).length === 1, 'maxDepth should bound the walk');
 
-  const truncated = callInspectorTool(tools, 'graphora_dependencies', {
+  const truncated = callInspectorTool(tools, 'grafyx_dependencies', {
     nodeId: 'render',
     direction: 'upstream',
     limit: 2,
   });
   ensure(truncated['truncated'] === true, 'dependency walks should report truncation');
 
-  const trace = callInspectorTool(tools, 'graphora_trace', {
+  const trace = callInspectorTool(tools, 'grafyx_trace', {
     types: ['node-changed'],
     nodeId: 'price',
   });
   ensure((trace['events'] as unknown[]).length === 1, 'trace should filter by type and node');
 
-  const snapshot = callInspectorTool(tools, 'graphora_snapshot', {limit: 2});
+  const snapshot = callInspectorTool(tools, 'grafyx_snapshot', {limit: 2});
   ensure(
     snapshot['totalNodes'] === 5 && (snapshot['nodes'] as unknown[]).length === 2,
     'snapshot should honor the limit',
@@ -129,23 +129,23 @@ function testInspectorTools(): void {
 
   expectInputError(() => callInspectorTool(tools, 'missing'), 'unknown tools should be rejected');
   expectInputError(
-    () => callInspectorTool(tools, 'graphora_list_nodes', {extra: true}),
+    () => callInspectorTool(tools, 'grafyx_list_nodes', {extra: true}),
     'unknown properties should be rejected',
   );
   expectInputError(
-    () => callInspectorTool(tools, 'graphora_list_nodes', {limit: 51}),
+    () => callInspectorTool(tools, 'grafyx_list_nodes', {limit: 51}),
     'limits above maxResults should be rejected',
   );
   expectInputError(
-    () => callInspectorTool(tools, 'graphora_explain', {}),
+    () => callInspectorTool(tools, 'grafyx_explain', {}),
     'required properties should be enforced',
   );
   expectInputError(
-    () => callInspectorTool(tools, 'graphora_trace', {types: ['bogus']}),
+    () => callInspectorTool(tools, 'grafyx_trace', {types: ['bogus']}),
     'enum arrays should be validated',
   );
   expectInputError(
-    () => callInspectorTool(tools, 'graphora_describe', []),
+    () => callInspectorTool(tools, 'grafyx_describe', []),
     'non-object input should be rejected',
   );
 
@@ -162,20 +162,20 @@ function testMcpHelpers(): void {
     'MCP tools should be annotated as read-only',
   );
 
-  const error = callMcpTool(tools, {name: 'graphora_explain', arguments: {nodeId: 'nope'}});
+  const error = callMcpTool(tools, {name: 'grafyx_explain', arguments: {nodeId: 'nope'}});
   ensure(error.isError === true, 'tool failures should become MCP error results');
   ensure(error.content[0]?.text.includes('nope') === true, 'MCP errors should explain the failure');
 }
 
 async function testMcpServerRoundTrip(): Promise<void> {
   const tools = createInspectorTools(createFixture());
-  const server = new Server({name: 'graphora-test', version: '1.0.0'}, {capabilities: {tools: {}}});
+  const server = new Server({name: 'grafyx-test', version: '1.0.0'}, {capabilities: {tools: {}}});
 
   server.setRequestHandler(ListToolsRequestSchema, () => ({tools: toMcpTools(tools)}));
   server.setRequestHandler(CallToolRequestSchema, (request) => callMcpTool(tools, request.params));
 
   const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
-  const client = new Client({name: 'graphora-test-client', version: '1.0.0'});
+  const client = new Client({name: 'grafyx-test-client', version: '1.0.0'});
 
   await Promise.all([server.connect(serverTransport), client.connect(clientTransport)]);
 
@@ -188,7 +188,7 @@ async function testMcpServerRoundTrip(): Promise<void> {
     );
 
     const result = await client.callTool({
-      name: 'graphora_explain',
+      name: 'grafyx_explain',
       arguments: {nodeId: 'total'},
     });
     const structured = result.structuredContent as {invalidation?: {sourceNodeId?: string}};
@@ -197,7 +197,7 @@ async function testMcpServerRoundTrip(): Promise<void> {
       'MCP calls should return explanations',
     );
 
-    const failed = await client.callTool({name: 'graphora_explain', arguments: {}});
+    const failed = await client.callTool({name: 'grafyx_explain', arguments: {}});
     ensure(failed.isError === true, 'invalid MCP calls should return tool errors');
   } finally {
     await client.close();

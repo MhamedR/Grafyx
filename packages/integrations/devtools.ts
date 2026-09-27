@@ -18,7 +18,7 @@ import {
 } from '../reactive/index.js';
 import {callInspectorTool, createInspectorTools, type InspectorTool} from './inspector.js';
 
-export const DEVTOOLS_PROTOCOL = 'graphora-devtools';
+export const DEVTOOLS_PROTOCOL = 'grafyx-devtools';
 export const DEVTOOLS_PROTOCOL_VERSION = 1;
 
 interface DevtoolsEnvelope {
@@ -172,7 +172,7 @@ export function createDevtoolsBridge(options: DevtoolsBridgeOptions): DevtoolsBr
   };
 
   return {
-    name: `graphora:devtools:${runtimeId}`,
+    name: `grafyx:devtools:${runtimeId}`,
 
     install(runtime: ReactiveRuntime) {
       tools = createInspectorTools(

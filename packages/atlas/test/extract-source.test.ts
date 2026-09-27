@@ -191,6 +191,6 @@ test('a workspace of several packages stays a package map', async () => {
   const ids = new Set(snapshot.nodes.map((node) => node.id));
 
   assert(snapshot.kind === 'workspace', 'this repository stays a workspace map');
-  assert(ids.has('graphora-graph'), 'packages remain the nodes');
+  assert(ids.has('grafyx-graph'), 'packages remain the nodes');
   assert(!ids.has('main.tsx'), 'source files are not nodes in a workspace');
 });

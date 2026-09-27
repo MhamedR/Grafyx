@@ -1,7 +1,7 @@
 /**
  * Directed structure over a snapshot.
  *
- * Algorithms stay on the public graphora graph. Relation names live in an
+ * Algorithms stay on the public grafyx graph. Relation names live in an
  * atlas map keyed by edge id, because GraphEdge only carries id, from, to,
  * and version.
  */
@@ -15,7 +15,7 @@ import {
   hasPath,
   stronglyConnectedComponents,
   topologicalSort,
-} from 'graphora';
+} from 'grafyx';
 import type {AtlasSnapshot, PackageNode, Relation} from './model.js';
 
 export interface PackageGraph {

@@ -7,7 +7,7 @@
  * - runtime diagnostics and graph snapshots
  *
  * Low-level graph primitives are published separately from
- * `graphora/advanced`.
+ * `grafyx/advanced`.
  */
 
 export {

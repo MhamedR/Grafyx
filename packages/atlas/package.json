@@ -1,5 +1,5 @@
 {
-  "name": "graphora-atlas",
+  "name": "grafyx-atlas",
   "version": "0.1.0",
   "description": "A reactive, animated map of software structure.",
   "type": "module",
@@ -13,7 +13,7 @@
     }
   },
   "bin": {
-    "graphora-atlas": "dist/server.js"
+    "grafyx-atlas": "dist/server.js"
   },
   "files": [
     "CHANGELOG.md",
@@ -53,7 +53,7 @@
   },
   "homepage": "https://github.com/MhamedR/Graphora/tree/main/packages/atlas#readme",
   "dependencies": {
-    "graphora": "^1.0.1"
+    "grafyx": "^1.0.1"
   },
   "devDependencies": {
     "@types/react": "^19.2.2",

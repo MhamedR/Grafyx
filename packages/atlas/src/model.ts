@@ -1,5 +1,5 @@
 /**
- * Snapshot model for graphora/atlas.
+ * Snapshot model for grafyx/atlas.
  *
  * Extractors return this shape. New maps add relation names; they do not
  * invent a second graph model.

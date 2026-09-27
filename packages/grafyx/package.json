@@ -1,15 +1,15 @@
 {
-  "name": "graphora",
+  "name": "grafyx",
   "version": "1.0.1",
   "description": "Framework-agnostic directed graph and reactive engine for TypeScript.",
   "type": "module",
-  "main": "./dist/graphora/index.js",
-  "types": "./dist/graphora/index.d.ts",
+  "main": "./dist/grafyx/index.js",
+  "types": "./dist/grafyx/index.d.ts",
   "exports": {
     ".": {
-      "types": "./dist/graphora/index.d.ts",
-      "import": "./dist/graphora/index.js",
-      "default": "./dist/graphora/index.js"
+      "types": "./dist/grafyx/index.d.ts",
+      "import": "./dist/grafyx/index.js",
+      "default": "./dist/grafyx/index.js"
     },
     "./graph": {
       "types": "./dist/graph/index.d.ts",
@@ -22,29 +22,29 @@
       "default": "./dist/reactive/index.js"
     },
     "./advanced": {
-      "types": "./dist/graphora/advanced.d.ts",
-      "import": "./dist/graphora/advanced.js",
-      "default": "./dist/graphora/advanced.js"
+      "types": "./dist/grafyx/advanced.d.ts",
+      "import": "./dist/grafyx/advanced.js",
+      "default": "./dist/grafyx/advanced.js"
     },
     "./opentelemetry": {
-      "types": "./dist/graphora/opentelemetry.d.ts",
-      "import": "./dist/graphora/opentelemetry.js",
-      "default": "./dist/graphora/opentelemetry.js"
+      "types": "./dist/grafyx/opentelemetry.d.ts",
+      "import": "./dist/grafyx/opentelemetry.js",
+      "default": "./dist/grafyx/opentelemetry.js"
     },
     "./inspector": {
-      "types": "./dist/graphora/inspector.d.ts",
-      "import": "./dist/graphora/inspector.js",
-      "default": "./dist/graphora/inspector.js"
+      "types": "./dist/grafyx/inspector.d.ts",
+      "import": "./dist/grafyx/inspector.js",
+      "default": "./dist/grafyx/inspector.js"
     },
     "./devtools": {
-      "types": "./dist/graphora/devtools.d.ts",
-      "import": "./dist/graphora/devtools.js",
-      "default": "./dist/graphora/devtools.js"
+      "types": "./dist/grafyx/devtools.d.ts",
+      "import": "./dist/grafyx/devtools.js",
+      "default": "./dist/grafyx/devtools.js"
     },
     "./store": {
-      "types": "./dist/graphora/store.d.ts",
-      "import": "./dist/graphora/store.js",
-      "default": "./dist/graphora/store.js"
+      "types": "./dist/grafyx/store.d.ts",
+      "import": "./dist/grafyx/store.js",
+      "default": "./dist/grafyx/store.js"
     }
   },
   "files": [
@@ -67,7 +67,7 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/MhamedR/Graphora.git",
-    "directory": "packages/graphora"
+    "directory": "packages/grafyx"
   },
   "keywords": [
     "directed-graph",

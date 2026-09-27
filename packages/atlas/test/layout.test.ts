@@ -17,21 +17,21 @@ test('this workspace ranks in build order', async () => {
   const layout = layoutSnapshot(snapshot, {width: 1400, height: 800});
   const rank = (id: string) => node(layout, id)?.rank;
 
-  assert(rank('graphora-data-structures') === 0, 'data-structures is rank 0');
-  assert(rank('graphora-graph') === 1, 'graph is rank 1');
-  assert(rank('graphora-reactive') === 1, 'reactive shares rank 1');
-  assert(rank('graphora-integrations') === 2, 'integrations follows reactive');
-  assert(rank('graphora') === 3, 'the bundle follows everything it includes');
-  assert(rank('graphora-atlas') === 4, 'atlas follows graphora');
+  assert(rank('grafyx-data-structures') === 0, 'data-structures is rank 0');
+  assert(rank('grafyx-graph') === 1, 'graph is rank 1');
+  assert(rank('grafyx-reactive') === 1, 'reactive shares rank 1');
+  assert(rank('grafyx-integrations') === 2, 'integrations follows reactive');
+  assert(rank('grafyx') === 3, 'the bundle follows everything it includes');
+  assert(rank('grafyx-atlas') === 4, 'atlas follows grafyx');
 
-  const dataStructures = node(layout, 'graphora-data-structures');
-  const graph = node(layout, 'graphora-graph');
-  const graphora = node(layout, 'graphora');
+  const dataStructures = node(layout, 'grafyx-data-structures');
+  const graph = node(layout, 'grafyx-graph');
+  const grafyx = node(layout, 'grafyx');
   ensure(
-    dataStructures !== undefined && graph !== undefined && graphora !== undefined,
+    dataStructures !== undefined && graph !== undefined && grafyx !== undefined,
     'nodes are placed',
   );
-  assert(dataStructures.x < graph.x && graph.x < graphora.x, 'earlier ranks sit to the left');
+  assert(dataStructures.x < graph.x && graph.x < grafyx.x, 'earlier ranks sit to the left');
   assert(
     layout.edges.some((edge) => edge.relation === 'bundle-includes' && edge.cyclic === false),
     'bundle edges are drawn and are not cycles',

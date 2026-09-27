@@ -61,7 +61,7 @@ function picture(): ReturnType<typeof buildExportPicture> {
 test('draw.io export keeps nodes, relations, and escaped labels', () => {
   const xml = toDrawio(picture());
 
-  assert(xml.includes('<mxfile host="graphora-atlas"'), 'the file is a diagrams.net document');
+  assert(xml.includes('<mxfile host="grafyx-atlas"'), 'the file is a diagrams.net document');
   assert(xml.includes('name="multi-agent impact"'), 'the diagram is named from the root and lens');
   assert(xml.includes('background="#12110e"'), 'the page keeps the field color');
   assert(xml.includes('a&amp;b'), 'labels escape markup');

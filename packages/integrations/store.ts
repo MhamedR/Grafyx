@@ -56,7 +56,7 @@ export function createExternalStore<T>(
   source: ReactiveReadable<T>,
   options: ExternalStoreOptions = {},
 ): ReactiveExternalStore<T> {
-  const id = options.id ?? `graphora:store:${source.node.id}:${++storeSequence}`;
+  const id = options.id ?? `grafyx:store:${source.node.id}:${++storeSequence}`;
   const listeners = new Set<() => void>();
   let observer: ReactiveEffect | undefined;
   let status: 'idle' | 'value' | 'error' = 'idle';

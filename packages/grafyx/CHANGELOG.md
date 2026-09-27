@@ -1,4 +1,4 @@
-# Graphora
+# Grafyx
 
 ## 1.0.1
 
@@ -10,7 +10,7 @@
 
 ### Changed
 
-- Separated low-level reactive primitives into the `graphora/advanced` subpath.
+- Separated low-level reactive primitives into the `grafyx/advanced` subpath.
 - Hardened runtime disposal, scheduler errors, runtime ownership, and node identity.
 - Made deep and wide reactive updates scale predictably with a stable computation-depth limit.
 - Added package-level consumer smoke tests and production release checks.
@@ -21,8 +21,8 @@
   to synchronous schedulers.
 - Added executable performance regression budgets to CI.
 - Added `runtime.use()` plugins, computation events, and a versioned event schema.
-- Added `graphora/opentelemetry`, `graphora/inspector` (with MCP
-  helpers), `graphora/devtools`, and `graphora/store` integration
+- Added `grafyx/opentelemetry`, `grafyx/inspector` (with MCP
+  helpers), `grafyx/devtools`, and `grafyx/store` integration
   subpaths with no runtime dependencies.
 - Published benchmark results as CI artifacts and job summaries.
 

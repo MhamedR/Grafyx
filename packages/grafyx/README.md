@@ -1,14 +1,14 @@
-# Graphora
+# Grafyx
 
-Graphora is a dependency-free, ESM-only TypeScript library for directed graphs
+Grafyx is a dependency-free, ESM-only TypeScript library for directed graphs
 and deterministic push/pull reactivity. It does not ship a UI framework.
 Application code keeps its own Angular, React, Vue, Svelte, or Solid runtime
-and reads Graphora through a small store adapter.
+and reads Grafyx through a small store adapter.
 
 Node.js 20 or newer is required. Bundlers must be able to load ESM.
 
 ```bash
-npm install graphora
+npm install grafyx
 ```
 
 ## What you get
@@ -23,7 +23,7 @@ npm install graphora
   and Solid.
 
 ```ts
-import {DirectedGraph, Node, ReactiveComputed, ReactiveRuntime, ReactiveValue} from 'graphora';
+import {DirectedGraph, Node, ReactiveComputed, ReactiveRuntime, ReactiveValue} from 'grafyx';
 ```
 
 ## Directed graphs
@@ -43,7 +43,7 @@ Nodes and edges live in maps, so structural lookups do not scan the graph.
 ignored. Missing-node queries throw. `hasPath(graph, id, id)` is true.
 
 ```ts
-import {DirectedGraph, Node, hasPath, topologicalSort} from 'graphora/graph';
+import {DirectedGraph, Node, hasPath, topologicalSort} from 'grafyx/graph';
 
 const pipeline = new DirectedGraph<{label: string}>();
 pipeline.addNode(new Node('lint', {label: 'Lint'}));
@@ -66,7 +66,7 @@ cycle.
 ## Reactivity
 
 ```ts
-import {ReactiveComputed, ReactiveEffect, ReactiveRuntime, ReactiveValue} from 'graphora/reactive';
+import {ReactiveComputed, ReactiveEffect, ReactiveRuntime, ReactiveValue} from 'grafyx/reactive';
 
 const runtime = new ReactiveRuntime();
 const price = new ReactiveValue(runtime, 'price', 20);
@@ -99,7 +99,7 @@ runtime.flush(); // one effect run, total is 90
 
 Node IDs are unique inside one runtime. A dependency cannot cross runtimes.
 `dispose()` is idempotent. Computed evaluation is synchronous and stops after
-1,000 nested computeds. Graphora does not track state across `await`; use
+1,000 nested computeds. Grafyx does not track state across `await`; use
 `AsyncReactiveScheduler` when the scheduled work itself is asynchronous.
 
 ### Why a value changed
@@ -120,7 +120,7 @@ Pass `traceBufferSize` only when you want a bounded history.
 
 ## Angular, React, Vue, Svelte, and Solid
 
-`graphora/store` does not import any of those frameworks. `createExternalStore`
+`grafyx/store` does not import any of those frameworks. `createExternalStore`
 returns `{subscribe, getSnapshot}`. Pass `createMicrotaskScheduler()` when the
 view should update on its own. Without that scheduler, listeners run on
 `runtime.flush()`.
@@ -129,7 +129,7 @@ Create the store once and reuse it. It observes the source only while it has
 subscribers.
 
 ```ts
-import {createExternalStore, createMicrotaskScheduler} from 'graphora/store';
+import {createExternalStore, createMicrotaskScheduler} from 'grafyx/store';
 
 const totalStore = createExternalStore(runtime, total, {
   scheduler: createMicrotaskScheduler(),
@@ -143,7 +143,7 @@ signal changes.
 
 ```ts
 import {DestroyRef, signal} from '@angular/core';
-import {createExternalStore, createMicrotaskScheduler} from 'graphora/store';
+import {createExternalStore, createMicrotaskScheduler} from 'grafyx/store';
 
 const totalStore = createExternalStore(runtime, total, {
   scheduler: createMicrotaskScheduler(),
@@ -185,7 +185,7 @@ If `getSnapshot()` throws, the error reaches the nearest error boundary.
 
 ```ts
 import {customRef, onScopeDispose, type Ref} from 'vue';
-import type {ReactiveExternalStore} from 'graphora/store';
+import type {ReactiveExternalStore} from 'grafyx/store';
 
 export function useReactive<T>(store: ReactiveExternalStore<T>): Readonly<Ref<T>> {
   return customRef((track, trigger) => {
@@ -196,7 +196,7 @@ export function useReactive<T>(store: ReactiveExternalStore<T>): Readonly<Ref<T>
         return store.getSnapshot();
       },
       set() {
-        throw new Error('Graphora stores are read-only. Write to the source value.');
+        throw new Error('Grafyx stores are read-only. Write to the source value.');
       },
     };
   });
@@ -209,7 +209,7 @@ export function useReactive<T>(store: ReactiveExternalStore<T>): Readonly<Ref<T>
 
 ```svelte
 <script lang="ts">
-  import {createExternalStore, createMicrotaskScheduler, toSvelteStore} from 'graphora/store';
+  import {createExternalStore, createMicrotaskScheduler, toSvelteStore} from 'grafyx/store';
 
   const total$ = toSvelteStore(
     createExternalStore(runtime, total, {scheduler: createMicrotaskScheduler()}),
@@ -232,25 +232,25 @@ const totalSignal = from<number>((set) => {
 
 ## Other entry points
 
-| Import                   | Use                                                |
-| ------------------------ | -------------------------------------------------- |
-| `graphora`               | Graph and reactive APIs together                   |
-| `graphora/graph`         | Graph only                                         |
-| `graphora/reactive`      | Reactive runtime only                              |
-| `graphora/advanced`      | Low-level reactive graph primitives for adapters   |
-| `graphora/store`         | Stores for Angular, React, Vue, Svelte, and Solid  |
-| `graphora/opentelemetry` | Batches and computations as OpenTelemetry spans    |
-| `graphora/inspector`     | Read-only inspection tools and MCP adapter helpers |
-| `graphora/devtools`      | Transport-agnostic devtools message bridge         |
+| Import                 | Use                                                |
+| ---------------------- | -------------------------------------------------- |
+| `grafyx`               | Graph and reactive APIs together                   |
+| `grafyx/graph`         | Graph only                                         |
+| `grafyx/reactive`      | Reactive runtime only                              |
+| `grafyx/advanced`      | Low-level reactive graph primitives for adapters   |
+| `grafyx/store`         | Stores for Angular, React, Vue, Svelte, and Solid  |
+| `grafyx/opentelemetry` | Batches and computations as OpenTelemetry spans    |
+| `grafyx/inspector`     | Read-only inspection tools and MCP adapter helpers |
+| `grafyx/devtools`      | Transport-agnostic devtools message bridge         |
 
-Ordinary applications do not need `graphora/advanced`.
+Ordinary applications do not need `grafyx/advanced`.
 
 Plugins attach with `runtime.use(plugin)`. OpenTelemetry stays out of
-Graphora's dependencies: pass a tracer that implements `startSpan`.
+Grafyx's dependencies: pass a tracer that implements `startSpan`.
 
 ```ts
 import {context, trace} from '@opentelemetry/api';
-import {createOpenTelemetryPlugin} from 'graphora/opentelemetry';
+import {createOpenTelemetryPlugin} from 'grafyx/opentelemetry';
 
 runtime.use(
   createOpenTelemetryPlugin({
@@ -260,8 +260,8 @@ runtime.use(
 );
 ```
 
-An outermost `runtime.batch()` becomes a `graphora.batch` span. Each computed
-evaluation and effect run becomes `graphora.computed` or `graphora.effect`.
+An outermost `runtime.batch()` becomes a `grafyx.batch` span. Each computed
+evaluation and effect run becomes `grafyx.computed` or `grafyx.effect`.
 
 ## License
 

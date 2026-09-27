@@ -29,7 +29,7 @@ When changesets reach `main`, the release workflow opens or updates a release
 pull request. That pull request applies package versions and changelogs.
 
 Merging the release pull request runs the full production gate and publishes
-`graphora` with npm provenance. The workflow also creates the corresponding
+`grafyx` with npm provenance. The workflow also creates the corresponding
 Git tag and GitHub release through Changesets.
 
 ## Manual verification
@@ -45,10 +45,10 @@ npx changeset status
 After publication, install the registry artifact in a clean project and test
 all four entry points:
 
-- `graphora`
-- `graphora/graph`
-- `graphora/reactive`
-- `graphora/advanced`
+- `grafyx`
+- `grafyx/graph`
+- `grafyx/reactive`
+- `grafyx/advanced`
 
 Do not publish directly from a developer workstation except during an explicit
 release-recovery procedure.

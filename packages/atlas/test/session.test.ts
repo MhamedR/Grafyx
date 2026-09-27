@@ -22,30 +22,30 @@ test('the session derives impact, upstream, and a stable layout', async () => {
     assert(again === structure, 'the graph computed is cached');
 
     session.runtime.batch(() => {
-      session.selectedId.value = 'graphora-data-structures';
+      session.selectedId.value = 'grafyx-data-structures';
       session.lens.value = 'impact';
     });
 
     assert(session.graph.value === structure, 'selection does not rebuild the graph');
     const impact = new Set(session.downstream.value);
-    assert(impact.has('graphora-graph'), 'impact includes graph');
-    assert(impact.has('graphora-reactive'), 'impact includes reactive');
-    assert(impact.has('graphora-integrations'), 'impact includes integrations');
+    assert(impact.has('grafyx-graph'), 'impact includes graph');
+    assert(impact.has('grafyx-reactive'), 'impact includes reactive');
+    assert(impact.has('grafyx-integrations'), 'impact includes integrations');
 
     const lit = new Set(session.emphasis.value.nodes);
-    assert(lit.has('graphora-graph'), 'the impact lens lights graph');
-    assert(lit.has('graphora-reactive'), 'the impact lens lights reactive');
-    assert(lit.has('graphora-integrations'), 'the impact lens lights integrations');
+    assert(lit.has('grafyx-graph'), 'the impact lens lights graph');
+    assert(lit.has('grafyx-reactive'), 'the impact lens lights reactive');
+    assert(lit.has('grafyx-integrations'), 'the impact lens lights integrations');
 
     session.runtime.batch(() => {
-      session.selectedId.value = 'graphora-integrations';
+      session.selectedId.value = 'grafyx-integrations';
       session.lens.value = 'upstream';
     });
 
     const ancestors = new Set(session.upstream.value);
-    assert(ancestors.has('graphora-reactive'), 'integrations stands on reactive');
-    assert(ancestors.has('graphora-data-structures'), 'integrations stands on data-structures');
-    assert(!ancestors.has('graphora'), 'graphora is not upstream of integrations');
+    assert(ancestors.has('grafyx-reactive'), 'integrations stands on reactive');
+    assert(ancestors.has('grafyx-data-structures'), 'integrations stands on data-structures');
+    assert(!ancestors.has('grafyx'), 'grafyx is not upstream of integrations');
 
     session.setLens('cycles');
     assert(session.order.value.kind === 'order', 'this workspace has a build order');
@@ -59,10 +59,10 @@ test('the session derives impact, upstream, and a stable layout', async () => {
     session.setQuery('graph');
     assert(session.layout.value === layout, 'a filter does not move the layout');
 
-    const graphNode = layout?.nodes.find((node) => node.id === 'graphora-graph');
+    const graphNode = layout?.nodes.find((node) => node.id === 'grafyx-graph');
     ensure(graphNode !== undefined, 'graph is placed');
-    session.moveNode('graphora-graph', 48, -16);
-    const dragged = session.layout.value?.nodes.find((node) => node.id === 'graphora-graph');
+    session.moveNode('grafyx-graph', 48, -16);
+    const dragged = session.layout.value?.nodes.find((node) => node.id === 'grafyx-graph');
     ensure(dragged !== undefined, 'the dragged node stays in the picture');
     assert(
       dragged.x === graphNode.x + 48 && dragged.y === graphNode.y - 16,
@@ -78,11 +78,11 @@ test('the session derives impact, upstream, and a stable layout', async () => {
     assert(session.layout.value !== layout, 'viewport size recomputes the layout');
 
     assert(
-      parseCommand('graphora-graph impact', ['graphora-graph']).packageId === 'graphora-graph',
+      parseCommand('grafyx-graph impact', ['grafyx-graph']).packageId === 'grafyx-graph',
       'command reads a package',
     );
     assert(
-      parseCommand('graphora-graph impact', ['graphora-graph']).lens === 'impact',
+      parseCommand('grafyx-graph impact', ['grafyx-graph']).lens === 'impact',
       'command reads a lens',
     );
   } finally {
