@@ -4,7 +4,7 @@
 
 grafyx/atlas scans a project and draws it as a directed graph: which parts must exist before which others, what a change will reach, what a part stands on, where the order is impossible, and the schedule that falls out of it. It runs as a local web app and exports what you see to Draw.io, PDF, or JPEG.
 
-![grafyx/atlas: start it, explore the map, check impact and upstream, cycles and order, go deeper, and export](https://raw.githubusercontent.com/MhamedR/Graphora/main/packages/atlas/docs/demo.gif)
+![grafyx/atlas: start it, explore the map, check impact and upstream, cycles and order, go deeper, and export](https://raw.githubusercontent.com/MhamedR/Grafyx/main/packages/atlas/docs/demo.gif)
 
 The pictures in this guide are the `src/app` folder of an Angular front end (`rag-frontend`). Every screenshot comes from that project, except the loop under [Cycles](#cycles).
 
@@ -79,8 +79,8 @@ Refresh the page to rescan. The server reads the tree again on every load.
 ### From a clone of Grafyx
 
 ```bash
-git clone https://github.com/MhamedR/Graphora.git
-cd Graphora
+git clone https://github.com/MhamedR/Grafyx.git
+cd Grafyx
 npm ci
 npm run build
 npm run dev -w grafyx-atlas -- --root /absolute/path/to/your-app/src/app
@@ -116,7 +116,7 @@ The five lenses sit at the top of the left rail. Each one has a sentence under i
 
 ### Map
 
-![Map of rag-frontend/src/app with services selected and its tooltip open](https://raw.githubusercontent.com/MhamedR/Graphora/main/packages/atlas/docs/map.png)
+![Map of rag-frontend/src/app with services selected and its tooltip open](https://raw.githubusercontent.com/MhamedR/Grafyx/main/packages/atlas/docs/map.png)
 
 **map** is the whole source, in dependency order: "The source, in dependency order."
 
@@ -126,7 +126,7 @@ Here `services` is selected. It holds six files, stands on `models`, and comes b
 
 ### Impact
 
-![Impact of services: everything downstream stays lit, models dims](https://raw.githubusercontent.com/MhamedR/Graphora/main/packages/atlas/docs/impact.png)
+![Impact of services: everything downstream stays lit, models dims](https://raw.githubusercontent.com/MhamedR/Grafyx/main/packages/atlas/docs/impact.png)
 
 Select a part, then **impact**: "What must change if this part changes."
 
@@ -134,7 +134,7 @@ With `services` selected, everything downstream stays lit: `app.component.ts`, `
 
 ### Upstream
 
-![Upstream of app.routes.ts: components, guards, services, and models stay lit](https://raw.githubusercontent.com/MhamedR/Graphora/main/packages/atlas/docs/upstream.png)
+![Upstream of app.routes.ts: components, guards, services, and models stay lit](https://raw.githubusercontent.com/MhamedR/Grafyx/main/packages/atlas/docs/upstream.png)
 
 Select a part, then **upstream**: "What this part stands on."
 
@@ -142,25 +142,25 @@ Select a part, then **upstream**: "What this part stands on."
 
 ### Cycles
 
-![Cycles lens on rag-frontend: this workspace has a build order](https://raw.githubusercontent.com/MhamedR/Graphora/main/packages/atlas/docs/cycles.png)
+![Cycles lens on rag-frontend: this workspace has a build order](https://raw.githubusercontent.com/MhamedR/Grafyx/main/packages/atlas/docs/cycles.png)
 
 **cycles** asks where the order is impossible. `rag-frontend/src/app` has no import loop, so the sentence changes to "This workspace has a build order." and nothing needs attention. The ranks stay on the field.
 
 When a project does contain a loop, this lens keeps it lit and dims everything else. The parts in the loop share a rank, because no schedule can place one strictly before the other:
 
-![Cycles lens on a small example: auth and users import each other](https://raw.githubusercontent.com/MhamedR/Graphora/main/packages/atlas/docs/cycles-loop.png)
+![Cycles lens on a small example: auth and users import each other](https://raw.githubusercontent.com/MhamedR/Grafyx/main/packages/atlas/docs/cycles-loop.png)
 
 This second picture is a four-file example made for this guide, since the Angular app has no loop to show. `auth/session.ts` imports `users/user.ts`, and `users/user.ts` imports `auth/token.ts`, so `auth` and `users` each stand on the other.
 
 ### Order
 
-![Order lens: the schedule from models to app.config.ts](https://raw.githubusercontent.com/MhamedR/Graphora/main/packages/atlas/docs/order.png)
+![Order lens: the schedule from models to app.config.ts](https://raw.githubusercontent.com/MhamedR/Grafyx/main/packages/atlas/docs/order.png)
 
 **order** is "The schedule, and only the schedule." The arrows fall back to a hairline and you read the ranks, left to right: `models`, then `services`, then `app.component.ts`, `components`, `guards`, and `interceptors`, then `app.routes.ts`, and `app.config.ts` last. The filmstrip is the same list.
 
 ## Go deeper
 
-![Inside components: chat, documents, login, and search, with the files they import from outside](https://raw.githubusercontent.com/MhamedR/Graphora/main/packages/atlas/docs/deeper.png)
+![Inside components: chat, documents, login, and search, with the files they import from outside](https://raw.githubusercontent.com/MhamedR/Grafyx/main/packages/atlas/docs/deeper.png)
 
 Right-click a folder and choose **Go deeper**. The map draws the files and subfolders inside that part, plus the files one import away. The breadcrumb records where you are; here it reads `app / components`.
 
@@ -174,7 +174,7 @@ Click `app` in the breadcrumb to climb back to the folder map. When you have gon
 
 ## Export
 
-![The export menu: Draw.io, PDF, JPEG](https://raw.githubusercontent.com/MhamedR/Graphora/main/packages/atlas/docs/export.png)
+![The export menu: Draw.io, PDF, JPEG](https://raw.githubusercontent.com/MhamedR/Grafyx/main/packages/atlas/docs/export.png)
 
 **export** sits at the top right. It saves the picture on screen: the lens you have open, the selected node, any name you have typed to dim the rest, and any node you have dragged. Choose a format from the menu and the browser downloads the file.
 
@@ -186,7 +186,7 @@ Click `app` in the breadcrumb to climb back to the folder map. When you have gon
 
 The file name is the last folder of `--root` and the lens: `<project>-<lens>.<ext>`. With `--root …/src/app`, **impact** open, and `services` selected, the three files are `app-impact.drawio`, `app-impact.pdf`, and `app-impact.jpeg`. This is that JPEG, unedited:
 
-![Exported JPEG: impact of services](https://raw.githubusercontent.com/MhamedR/Graphora/main/packages/atlas/docs/export-impact.jpeg)
+![Exported JPEG: impact of services](https://raw.githubusercontent.com/MhamedR/Grafyx/main/packages/atlas/docs/export-impact.jpeg)
 
 Dimmed nodes keep their dimmed opacity in every format, so an exported impact or upstream picture reads the same way as the screen. The button is disabled while there is nothing to draw. If an export fails, the reason appears under the button.
 
@@ -313,8 +313,8 @@ Source layout:
 | `src/export.ts`     | Draw.io and PDF writers                           |
 | `src/ui/`           | React UI, and the canvas painter for JPEG and PDF |
 
-See [CONTRIBUTING.md](https://github.com/MhamedR/Graphora/blob/main/CONTRIBUTING.md) for the repository's checks and conventions.
+See [CONTRIBUTING.md](https://github.com/MhamedR/Grafyx/blob/main/CONTRIBUTING.md) for the repository's checks and conventions.
 
 ## License
 
-ISC. See [LICENSE](https://github.com/MhamedR/Graphora/blob/main/LICENSE).
+ISC. See [LICENSE](https://github.com/MhamedR/Grafyx/blob/main/LICENSE).

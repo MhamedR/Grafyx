@@ -35,7 +35,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/MhamedR/Graphora.git",
+    "url": "git+https://github.com/MhamedR/Grafyx.git",
     "directory": "packages/atlas"
   },
   "keywords": [
@@ -49,9 +49,9 @@
   ],
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/MhamedR/Graphora/issues"
+    "url": "https://github.com/MhamedR/Grafyx/issues"
   },
-  "homepage": "https://github.com/MhamedR/Graphora/tree/main/packages/atlas#readme",
+  "homepage": "https://github.com/MhamedR/Grafyx/tree/main/packages/atlas#readme",
   "dependencies": {
     "grafyx": "^1.0.1"
   },

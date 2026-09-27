@@ -3,7 +3,7 @@ import {fileURLToPath} from 'node:url';
 import {test} from 'node:test';
 import {assert, ensure} from '../../../test/assert.js';
 import {extractWorkspace} from '../src/extract-workspace.js';
-import {createAtlasSession, parseCommand} from '../src/session.js';
+import {connectAtlasSession, createAtlasSession, parseCommand} from '../src/session.js';
 
 const repoRoot = join(dirname(fileURLToPath(import.meta.url)), '../../..');
 
@@ -85,6 +85,106 @@ test('the session derives impact, upstream, and a stable layout', async () => {
       parseCommand('grafyx-graph impact', ['grafyx-graph']).lens === 'impact',
       'command reads a lens',
     );
+
+    session.command('grafyx impact');
+    assert(session.selectedId.value === 'grafyx', 'command selects the package');
+    assert(session.lens.value === 'impact', 'command opens the lens');
+
+    session.select(null);
+    session.moveSelection('outgoing');
+    assert(session.selectedId.value === 'grafyx-data-structures', 'arrows start at rank 0');
+    session.moveSelection('outgoing');
+    assert(
+      session.selectedId.value === 'grafyx-graph' || session.selectedId.value === 'grafyx-reactive',
+      'an outgoing step follows a dependency',
+    );
+
+    const stores = connectAtlasSession(session);
+    assert(
+      stores.selectedId.getSnapshot() === session.selectedId.value,
+      'the store tracks selection',
+    );
+    stores.dispose();
+  } finally {
+    session.dispose();
+  }
+});
+
+test('Go deeper pushes a folder snapshot and the breadcrumb climbs back', async () => {
+  const snapshot = await extractWorkspace(repoRoot);
+  const session = createAtlasSession({
+    root: snapshot.root,
+    snapshot,
+    viewport: {width: 1200, height: 700},
+  });
+
+  try {
+    const inner = {
+      ...snapshot,
+      kind: 'source' as const,
+      nodes: [
+        {
+          id: 'index.ts',
+          version: '',
+          private: false,
+          path: 'src/index.ts',
+          description: '',
+          files: ['index.ts'],
+        },
+      ],
+      edges: [],
+    };
+
+    session.select('grafyx');
+    session.setHovered('grafyx');
+    session.moveNode('grafyx', 12, 4);
+    session.pushDepth(inner, 'grafyx');
+
+    assert(session.crumbs.value.join(',') === 'grafyx', 'the breadcrumb records the folder');
+    assert(session.snapshot.value?.nodes[0]?.id === 'index.ts', 'the map shows the inner files');
+    assert(session.selectedId.value === null, 'selection clears when going deeper');
+    assert(session.hoveredId.value === null, 'hover clears when going deeper');
+
+    session.ascend(0);
+    assert(session.crumbs.value.length === 0, 'the first crumb climbs to the workspace');
+    assert(
+      session.snapshot.value?.nodes.some((node) => node.id === 'grafyx'),
+      'the workspace map is restored',
+    );
+
+    session.ascend(-1);
+    assert(session.crumbs.value.length === 0, 'an invalid crumb is ignored');
+  } finally {
+    session.dispose();
+  }
+});
+
+test('the cycles lens lights only the loop', async () => {
+  const snapshot = await extractWorkspace(repoRoot);
+  const session = createAtlasSession({root: snapshot.root, snapshot});
+
+  try {
+    session.replaceSnapshot({
+      root: '/loop',
+      extractedAt: snapshot.extractedAt,
+      kind: 'source',
+      nodes: [
+        {id: 'auth', version: '', private: false, path: 'auth', description: '', files: ['a.ts']},
+        {id: 'users', version: '', private: false, path: 'users', description: '', files: ['u.ts']},
+        {id: 'index.ts', version: '', private: false, path: 'index.ts', description: ''},
+      ],
+      edges: [
+        {id: 'imports:auth:users', from: 'auth', to: 'users', relation: 'imports'},
+        {id: 'imports:users:auth', from: 'users', to: 'auth', relation: 'imports'},
+        {id: 'imports:users:index.ts', from: 'users', to: 'index.ts', relation: 'imports'},
+      ],
+    });
+
+    session.setLens('cycles');
+    const lit = new Set(session.emphasis.value.nodes);
+    assert(lit.has('auth') && lit.has('users'), 'the loop stays lit');
+    assert(!lit.has('index.ts'), 'a sink outside the loop dims');
+    assert(session.order.value.kind === 'cycle', 'the order reports that no schedule exists');
   } finally {
     session.dispose();
   }

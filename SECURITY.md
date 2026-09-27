@@ -10,7 +10,7 @@ Security fixes are provided for the latest published major version of
 Do not open a public issue for a suspected vulnerability. Use GitHub's private
 vulnerability reporting for this repository:
 
-https://github.com/MhamedR/Graphora/security/advisories/new
+https://github.com/MhamedR/Grafyx/security/advisories/new
 
 Include the affected version, impact, reproduction steps, and any suggested
 mitigation. Reports will be acknowledged as soon as they can be triaged.
