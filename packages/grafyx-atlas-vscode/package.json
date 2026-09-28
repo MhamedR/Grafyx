@@ -2,7 +2,7 @@
   "name": "grafyx-atlas-vscode",
   "displayName": "Grafyx Atlas",
   "description": "Open the grafyx/atlas map of a project from VS Code.",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "private": true,
   "publisher": "grafyx",
   "icon": "icon.png",
