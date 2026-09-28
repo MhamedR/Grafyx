@@ -32,6 +32,7 @@ import type {AtlasLayout, PlacedEdge, PlacedNode} from '../layout.js';
 import {
   connectAtlasSession,
   createAtlasSession,
+  viewFromSearch,
   type AtlasConnection,
   type AtlasSession,
   type Emphasis,
@@ -118,6 +119,20 @@ function Picture({
   const [exportError, setExportError] = useState<string | null>(null);
   const [board, setBoard] = useState<'map' | 'stats'>('map');
   const crumbs = useStore(stores.crumbs);
+
+  const appliedView = useRef(false);
+  useLayoutEffect(() => {
+    if (appliedView.current || !snapshot) return;
+    appliedView.current = true;
+    const view = viewFromSearch(window.location.search);
+    session.runtime.batch(() => {
+      if (view.lens) session.lens.value = view.lens;
+      if (view.packageId && snapshot.nodes.some((node) => node.id === view.packageId)) {
+        session.selectedId.value = view.packageId;
+      }
+    });
+    if (view.stats) setBoard('stats');
+  }, [session, snapshot]);
 
   useLayoutEffect(() => {
     const stage = stageRef.current;

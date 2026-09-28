@@ -474,3 +474,19 @@ export function parseCommand(
 
   return {packageId, lens};
 }
+
+/** The `?lens=&id=` query the editor uses to open the map on a chosen part. */
+export function viewFromSearch(search: string): {
+  readonly packageId: string | null;
+  readonly lens: Lens | null;
+  readonly stats: boolean;
+} {
+  const params = new URLSearchParams(search);
+  const lensToken = params.get('lens')?.toLowerCase() ?? '';
+  const id = params.get('id')?.trim() ?? '';
+  return {
+    packageId: id.length > 0 ? id : null,
+    lens: isLens(lensToken) ? lensToken : null,
+    stats: lensToken === 'stats',
+  };
+}

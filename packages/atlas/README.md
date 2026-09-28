@@ -305,8 +305,9 @@ On a project with a loop, `order` returns `{kind: 'cycle', components}` with the
 | `structureStats(snapshot)`                                  | Largest files, weight by part, change reach, coupling, and the scan cost.                               |
 | `layoutSnapshot(snapshot, viewport)`, `applyOffsets`        | Rank layout and dragged offsets, as used by the UI.                                                     |
 | `createAtlasSession`, `connectAtlasSession`, `parseCommand` | The reactive session the UI renders, its React stores, and the command box parser.                      |
+| `startAtlasServer({root, port})` from `grafyx-atlas/server` | Bind the local map on `127.0.0.1`. Importing the entry does not listen, and it does not open a browser. |
 
-The model types (`AtlasSnapshot`, `PackageNode`, `AtlasEdge`, `Lens`, …) and constants (`LENSES`, `IMPORTS`, `WORKSPACE_DEPENDS`, `BUNDLE_INCLUDES`, …) are exported as well.
+The model types (`AtlasSnapshot`, `PackageNode`, `AtlasEdge`, `Lens`, …) and constants (`LENSES`, `IMPORTS`, `WORKSPACE_DEPENDS`, `BUNDLE_INCLUDES`, …) are exported as well. The dev server stays on `grafyx-atlas/server` so a normal `grafyx-atlas` import still does not start it. The CLI is unchanged: `grafyx-atlas` parses arguments, calls `startAtlasServer`, then opens a browser unless `--no-open` or `CI=true`.
 
 ## Development
 
@@ -324,7 +325,8 @@ Source layout:
 
 | Path                | Role                                              |
 | ------------------- | ------------------------------------------------- |
-| `src/server.ts`     | Server and CLI                                    |
+| `src/server.ts`     | CLI                                               |
+| `src/server-app.ts` | Map server used by the CLI and editor hosts       |
 | `src/extract-*.ts`  | Workspace and source extractors                   |
 | `src/structural.ts` | Order, impact, upstream, and cycles on the graph  |
 | `src/session.ts`    | Reactive session: selection, lens, filter, layout |

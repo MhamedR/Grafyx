@@ -3,7 +3,12 @@ import {fileURLToPath} from 'node:url';
 import {test} from 'node:test';
 import {assert, ensure} from '../../../test/assert.js';
 import {extractWorkspace} from '../src/extract-workspace.js';
-import {connectAtlasSession, createAtlasSession, parseCommand} from '../src/session.js';
+import {
+  connectAtlasSession,
+  createAtlasSession,
+  parseCommand,
+  viewFromSearch,
+} from '../src/session.js';
 
 const repoRoot = join(dirname(fileURLToPath(import.meta.url)), '../../..');
 
@@ -85,6 +90,11 @@ test('the session derives impact, upstream, and a stable layout', async () => {
       parseCommand('grafyx-graph impact', ['grafyx-graph']).lens === 'impact',
       'command reads a lens',
     );
+    const view = viewFromSearch('?lens=impact&id=grafyx-graph');
+    assert(view.lens === 'impact', 'a map link names the lens');
+    assert(view.packageId === 'grafyx-graph', 'a map link names the part');
+    assert(viewFromSearch('?lens=stats').stats === true, 'stats opens the weight board');
+    assert(viewFromSearch('?lens=nope').lens === null, 'an unknown lens is ignored');
 
     session.command('grafyx impact');
     assert(session.selectedId.value === 'grafyx', 'command selects the package');

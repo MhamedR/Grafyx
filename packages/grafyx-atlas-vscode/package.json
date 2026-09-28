@@ -1,0 +1,183 @@
+{
+  "name": "grafyx-atlas-vscode",
+  "displayName": "Grafyx Atlas",
+  "description": "Open the grafyx/atlas map of a project from VS Code.",
+  "version": "1.0.0",
+  "private": true,
+  "publisher": "grafyx",
+  "icon": "icon.png",
+  "license": "ISC",
+  "type": "module",
+  "engines": {
+    "node": ">=20",
+    "vscode": "^1.95.0"
+  },
+  "categories": [
+    "Visualization"
+  ],
+  "keywords": [
+    "dependency-graph",
+    "architecture",
+    "visualization",
+    "monorepo",
+    "grafyx",
+    "atlas"
+  ],
+  "extensionKind": [
+    "workspace"
+  ],
+  "main": "./dist/extension.js",
+  "activationEvents": [
+    "onCommand:grafyxAtlas.openMap",
+    "onCommand:grafyxAtlas.stopMap",
+    "onCommand:grafyxAtlas.showImpact",
+    "onCommand:grafyxAtlas.showUpstream",
+    "onCommand:grafyxAtlas.showCycles",
+    "onCommand:grafyxAtlas.showOrder",
+    "onCommand:grafyxAtlas.showStats",
+    "onCommand:grafyxAtlas.goDeeper",
+    "onCommand:grafyxAtlas.refreshDiagnostics",
+    "onCommand:grafyxAtlas.runCommand"
+  ],
+  "contributes": {
+    "commands": [
+      {
+        "command": "grafyxAtlas.openMap",
+        "title": "Grafyx Atlas: Open Map",
+        "category": "Grafyx Atlas"
+      },
+      {
+        "command": "grafyxAtlas.stopMap",
+        "title": "Grafyx Atlas: Stop Map",
+        "category": "Grafyx Atlas"
+      },
+      {
+        "command": "grafyxAtlas.showImpact",
+        "title": "Grafyx Atlas: Show Impact",
+        "category": "Grafyx Atlas"
+      },
+      {
+        "command": "grafyxAtlas.showUpstream",
+        "title": "Grafyx Atlas: Show Upstream",
+        "category": "Grafyx Atlas"
+      },
+      {
+        "command": "grafyxAtlas.showCycles",
+        "title": "Grafyx Atlas: Show Cycles",
+        "category": "Grafyx Atlas"
+      },
+      {
+        "command": "grafyxAtlas.showOrder",
+        "title": "Grafyx Atlas: Show Build Order",
+        "category": "Grafyx Atlas"
+      },
+      {
+        "command": "grafyxAtlas.showStats",
+        "title": "Grafyx Atlas: Show Stats",
+        "category": "Grafyx Atlas"
+      },
+      {
+        "command": "grafyxAtlas.goDeeper",
+        "title": "Grafyx Atlas: Go Deeper",
+        "category": "Grafyx Atlas"
+      },
+      {
+        "command": "grafyxAtlas.refreshDiagnostics",
+        "title": "Grafyx Atlas: Refresh Diagnostics",
+        "category": "Grafyx Atlas"
+      },
+      {
+        "command": "grafyxAtlas.runCommand",
+        "title": "Grafyx Atlas: Run Command",
+        "category": "Grafyx Atlas"
+      }
+    ],
+    "menus": {
+      "explorer/context": [
+        {
+          "command": "grafyxAtlas.openMap",
+          "group": "grafyx@1",
+          "when": "resourceScheme == file"
+        },
+        {
+          "command": "grafyxAtlas.showImpact",
+          "group": "grafyx@2",
+          "when": "resourceScheme == file"
+        },
+        {
+          "command": "grafyxAtlas.showUpstream",
+          "group": "grafyx@3",
+          "when": "resourceScheme == file"
+        },
+        {
+          "command": "grafyxAtlas.goDeeper",
+          "group": "grafyx@4",
+          "when": "resourceScheme == file"
+        }
+      ],
+      "editor/context": [
+        {
+          "command": "grafyxAtlas.showImpact",
+          "group": "grafyx@1",
+          "when": "resourceScheme == file"
+        },
+        {
+          "command": "grafyxAtlas.showUpstream",
+          "group": "grafyx@2",
+          "when": "resourceScheme == file"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "Grafyx Atlas",
+      "properties": {
+        "grafyxAtlas.root": {
+          "type": "string",
+          "default": "",
+          "description": "Project to map. Empty uses the workspace folder that contains the active file, otherwise the only open folder. A relative path resolves from that folder. An absolute path is used as written. Same role as grafyx-atlas --root. The process working directory is not used."
+        },
+        "grafyxAtlas.port": {
+          "type": "number",
+          "default": 4328,
+          "minimum": 0,
+          "maximum": 65535,
+          "description": "Port for the local atlas server on 127.0.0.1. When this setting is left at the default and has not been edited, the PORT environment variable is used, then 4328. The grafyx-atlas CLI stays on 4318 so both can run."
+        },
+        "grafyxAtlas.openIn": {
+          "type": "string",
+          "enum": [
+            "editor",
+            "external",
+            "none"
+          ],
+          "default": "editor",
+          "description": "Where to open the map. editor shows it in a VS Code tab. external opens the system browser, same as the grafyx-atlas CLI. none matches --no-open."
+        },
+        "grafyxAtlas.diagnostics": {
+          "type": "boolean",
+          "default": true,
+          "description": "Publish import-cycle warnings from the atlas scan. Cycles come from grafyx-atlas. Warnings update when an atlas command scans the project."
+        }
+      }
+    }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MhamedR/Grafyx.git",
+    "directory": "packages/grafyx-atlas-vscode"
+  },
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "package": "npm run build && vsce package --no-dependencies",
+    "test": "node --import tsx --test --test-concurrency=1 test/*.test.ts"
+  },
+  "dependencies": {
+    "grafyx-atlas": "1.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.2",
+    "@types/vscode": "^1.95.0",
+    "@vscode/vsce": "^3.6.0",
+    "esbuild": "^0.25.10"
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Grafyx Atlas",
+      "type": "extensionHost",
+      "request": "launch",
+      "args": ["--extensionDevelopmentPath=${workspaceFolder}/packages/grafyx-atlas-vscode"],
+      "outFiles": ["${workspaceFolder}/packages/grafyx-atlas-vscode/dist/**/*.js"],
+      "preLaunchTask": "build:vscode"
+    }
+  ]
+}
