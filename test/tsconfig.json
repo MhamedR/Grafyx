@@ -8,5 +8,10 @@
     "sourceMap": false
   },
   "include": ["./**/*.ts", "../packages/**/*.ts"],
-  "exclude": ["../node_modules", "../**/dist/**", "../packages/atlas/**"]
+  "exclude": [
+    "../node_modules",
+    "../**/dist/**",
+    "../packages/atlas/**",
+    "../packages/grafyx-atlas-vscode/**"
+  ]
 }
