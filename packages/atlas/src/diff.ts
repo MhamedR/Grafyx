@@ -62,7 +62,22 @@ function sameNode(before: PackageNode, after: PackageNode): boolean {
     before.private === after.private &&
     before.path === after.path &&
     before.description === after.description &&
-    sameFiles(before.files, after.files)
+    sameFiles(before.files, after.files) &&
+    sameMeasures(before.measures, after.measures)
+  );
+}
+
+function sameMeasures(before: PackageNode['measures'], after: PackageNode['measures']): boolean {
+  const left = before ?? [];
+  const right = after ?? [];
+  return (
+    left.length === right.length &&
+    left.every(
+      (measure, index) =>
+        measure.path === right[index]?.path &&
+        measure.bytes === right[index]?.bytes &&
+        measure.lines === right[index]?.lines,
+    )
   );
 }
 

@@ -38,3 +38,10 @@ test('diff reports added, removed, and changed structure', () => {
   assert(diff.addedEdges.map((item) => item.to).join(',') === 'c', 'the new edge is added');
   assert(diff.removedEdges.map((item) => item.to).join(',') === 'b', 'the old edge is removed');
 });
+
+test('a change in file size is a changed node', () => {
+  const before = snap([{...node('a'), measures: [{path: 'a.ts', bytes: 10, lines: 1}]}], []);
+  const after = snap([{...node('a'), measures: [{path: 'a.ts', bytes: 40, lines: 3}]}], []);
+  const diff = diffSnapshots(before, after);
+  assert(diff.changedNodes.map((item) => item.id).join(',') === 'a', 'byte changes are reported');
+});

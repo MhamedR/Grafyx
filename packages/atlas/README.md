@@ -15,6 +15,7 @@ The pictures in this guide are the `src/app` folder of an Angular front end (`ra
 - [Quick start](#quick-start)
 - [How to read the map](#how-to-read-the-map)
 - [Lenses](#lenses): [Map](#map), [Impact](#impact), [Upstream](#upstream), [Cycles](#cycles), [Order](#order)
+- [Stats](#stats)
 - [Go deeper](#go-deeper)
 - [Export](#export)
 - [Controls](#controls)
@@ -34,12 +35,14 @@ A dependency list tells you what imports what. It does not tell you what order t
 | What does this part depend on?          | **upstream** |
 | Is there an import loop?                | **cycles**   |
 | In what order do the parts come?        | **order**    |
+| Where does the weight sit?              | **stats**    |
 
 ## Features
 
 - **Two kinds of map.** A monorepo with several packages becomes a package graph. A single project becomes a map of its source tree: one node per top-level folder or loose file.
 - **Dependency order at a glance.** Nodes sit in ranks. Rank 0 depends on nothing inside the project; each later rank stands on the ranks before it.
 - **Five lenses** that answer one question each: map, impact, upstream, cycles, order.
+- **Stats.** The heaviest files, the weight of each part, how far a change reaches, how the parts couple, and what the scan cost.
 - **Go deeper.** Right-click a folder to see the files inside it and the files one import away.
 - **Inspect anything.** Hover a node for its files and edges; click it to pin those details in the rail.
 - **Export** the current picture to Draw.io (editable), PDF, or JPEG.
@@ -157,6 +160,21 @@ This second picture is a four-file example made for this guide, since the Angula
 ![Order lens: the schedule from models to app.config.ts](https://raw.githubusercontent.com/MhamedR/Grafyx/main/packages/atlas/docs/order.png)
 
 **order** is "The schedule, and only the schedule." The arrows fall back to a hairline and you read the ranks, left to right: `models`, then `services`, then `app.component.ts`, `components`, `guards`, and `interceptors`, then `app.routes.ts`, and `app.config.ts` last. The filmstrip is the same list.
+
+## Stats
+
+![Stats for rag-frontend/src/app: the heaviest files, how far a change reaches, the weight of each part, and how the parts couple](https://raw.githubusercontent.com/MhamedR/Grafyx/main/packages/atlas/docs/stats.png)
+
+**stats** sits under the lenses: "Where the weight sits, and how far a change reaches."
+
+The strip across the top is what the scan cost. This folder is 18 files, 26 KB, and 897 lines. Under that:
+
+- **Largest files** is a donut of the heaviest source files. The center is the bytes in the slices on screen, 20 KB here, which is less than the whole scan because only the top files are drawn. `documents.component.ts` is the largest, at 5.2 KB.
+- **Change reach** is a column for each part: how many other parts must move if this one changes. `models` reaches 7. `services` reaches 6.
+- **Weight by part** rolls file bytes up to the node on the map. `components` is 12 KB across 4 files. `services` is 9.6 KB across 6.
+- **Direct coupling** draws two bars. Copper is what this part stands on. The pale bar is what comes after it. `services` has 1 in and 4 out.
+
+Click a slice, a column, or a row and that part stays selected. The map lenses are unchanged.
 
 ## Go deeper
 
@@ -284,6 +302,7 @@ On a project with a loop, `order` returns `{kind: 'cycle', components}` with the
 | `order`, `downstream`, `upstream`, `cycles`, `components`   | The lenses as functions.                                                                                |
 | `path(graph, from, to)`, `degrees(graph, id)`, `relationOf` | A path between two parts, in and out degree, and the relation on one edge.                              |
 | `diffSnapshots(before, after)`                              | Added, removed, and changed nodes and edges between two snapshots.                                      |
+| `structureStats(snapshot)`                                  | Largest files, weight by part, change reach, coupling, and the scan cost.                               |
 | `layoutSnapshot(snapshot, viewport)`, `applyOffsets`        | Rank layout and dragged offsets, as used by the UI.                                                     |
 | `createAtlasSession`, `connectAtlasSession`, `parseCommand` | The reactive session the UI renders, its React stores, and the command box parser.                      |
 

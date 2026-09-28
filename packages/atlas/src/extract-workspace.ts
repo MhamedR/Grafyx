@@ -8,6 +8,7 @@
 import {access, readFile, readdir} from 'node:fs/promises';
 import {existsSync, statSync} from 'node:fs';
 import {dirname, join, relative, resolve, sep} from 'node:path';
+import {measureTree, scanFrom} from './measure.js';
 import {
   BUNDLE_INCLUDES,
   WORKSPACE_DEPENDS,
@@ -51,6 +52,7 @@ interface DiscoveredPackage {
  * the published package copies those modules into its build.
  */
 export async function extractWorkspace(root: string): Promise<AtlasSnapshot> {
+  const started = performance.now();
   const resolvedRoot = resolve(root);
 
   let manifest: PackageManifest;
@@ -70,16 +72,22 @@ export async function extractWorkspace(root: string): Promise<AtlasSnapshot> {
   packages.sort((left, right) => (left.id < right.id ? -1 : left.id > right.id ? 1 : 0));
 
   const names = new Set(packages.map((pkg) => pkg.id));
-  const nodes: PackageNode[] = packages.map((pkg) => ({
-    id: pkg.id,
-    version: pkg.version,
-    private: pkg.private,
-    path: pkg.path,
-    description: pkg.description,
-  }));
-
   const edges = new Map<string, AtlasEdge>();
-  const bundled = await Promise.all(packages.map((pkg) => bundledPackages(pkg, packages)));
+  const [bundled, measures] = await Promise.all([
+    Promise.all(packages.map((pkg) => bundledPackages(pkg, packages))),
+    Promise.all(packages.map((pkg) => measureTree(pkg.directory))),
+  ]);
+  const nodes: PackageNode[] = packages.map((pkg, index) => {
+    const measured = measures[index] ?? [];
+    return {
+      id: pkg.id,
+      version: pkg.version,
+      private: pkg.private,
+      path: pkg.path,
+      description: pkg.description,
+      ...(measured.length > 0 ? {measures: measured} : {}),
+    };
+  });
 
   packages.forEach((pkg, index) => {
     for (const dependency of pkg.dependencyNames) {
@@ -99,6 +107,7 @@ export async function extractWorkspace(root: string): Promise<AtlasSnapshot> {
     ),
     extractedAt: new Date().toISOString(),
     root: resolvedRoot,
+    scan: scanFrom(started, nodes),
   };
 }
 

@@ -16,12 +16,16 @@ export {
   WORKSPACE_DEPENDS,
   atlasEdgeId,
   isLens,
+  formatBytes,
+  nodeBytes,
   type AtlasBoot,
   type AtlasEdge,
   type AtlasSnapshot,
+  type FileMeasure,
   type Lens,
   type PackageNode,
   type Relation,
+  type ScanStats,
   type Viewport,
 } from './model.js';
 
@@ -45,6 +49,15 @@ export {
 } from './structural.js';
 
 export {diffSnapshots, type AtlasDiff, type NodeChange} from './diff.js';
+
+export {
+  structureStats,
+  type BlastRadius,
+  type Coupling,
+  type LargestFile,
+  type PartWeight,
+  type StructureStats,
+} from './stats.js';
 
 export {
   applyOffsets,

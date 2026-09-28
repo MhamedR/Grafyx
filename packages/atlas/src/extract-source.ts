@@ -10,11 +10,13 @@
 import {readdir, readFile} from 'node:fs/promises';
 import {existsSync, statSync} from 'node:fs';
 import {dirname, join, relative, resolve, sep} from 'node:path';
+import {measureText, scanFrom} from './measure.js';
 import {
   IMPORTS,
   atlasEdgeId,
   type AtlasEdge,
   type AtlasSnapshot,
+  type FileMeasure,
   type PackageNode,
 } from './model.js';
 
@@ -35,6 +37,7 @@ interface SourceFile {
  * part that imports it. Rank 0 is a part that imports nothing else in src.
  */
 export async function extractSource(root: string): Promise<AtlasSnapshot> {
+  const started = performance.now();
   const resolvedRoot = resolve(root);
   const sourceDirectory = await findSourceRoot(resolvedRoot);
   const files = sourceDirectory === null ? [] : await sourceFiles(sourceDirectory, sourceDirectory);
@@ -46,6 +49,19 @@ export async function extractSource(root: string): Promise<AtlasSnapshot> {
     if (group) group.push(file);
     else grouped.set(key, [file]);
   }
+
+  const nodeOf = new Map<string, string>();
+  for (const [id, members] of grouped) {
+    for (const file of members) nodeOf.set(file.absolute, id);
+  }
+
+  const edges = new Map<string, AtlasEdge>();
+  const aliases = await loadAliases(resolvedRoot);
+  const texts = await Promise.all(
+    files.map(async (file) => ({file, text: await readFile(file.absolute, 'utf8')})),
+  );
+  const measured = new Map<string, {bytes: number; lines: number}>();
+  for (const {file, text} of texts) measured.set(file.absolute, measureText(text));
 
   const nodes: PackageNode[] = [...grouped.entries()]
     .sort(([left], [right]) => (left < right ? -1 : left > right ? 1 : 0))
@@ -64,19 +80,13 @@ export async function extractSource(root: string): Promise<AtlasSnapshot> {
         path: toPosix(relative(resolvedRoot, join(sourceDirectory ?? resolvedRoot, id))),
         description: '',
         files: listed,
+        measures: measuresOf(
+          members,
+          (file) => (folder ? file.relativeToSource.slice(id.length + 1) : file.relativeToSource),
+          measured,
+        ),
       };
     });
-
-  const nodeOf = new Map<string, string>();
-  for (const [id, members] of grouped) {
-    for (const file of members) nodeOf.set(file.absolute, id);
-  }
-
-  const edges = new Map<string, AtlasEdge>();
-  const aliases = await loadAliases(resolvedRoot);
-  const texts = await Promise.all(
-    files.map(async (file) => ({file, text: await readFile(file.absolute, 'utf8')})),
-  );
 
   for (const {file, text} of texts) {
     const importer = nodeOf.get(file.absolute);
@@ -100,6 +110,7 @@ export async function extractSource(root: string): Promise<AtlasSnapshot> {
     extractedAt: new Date().toISOString(),
     root: resolvedRoot,
     kind: 'source',
+    scan: scanFrom(started, nodes),
   };
 }
 
@@ -114,6 +125,7 @@ export async function extractSourceFocus(
   root: string,
   nodePath: string,
 ): Promise<AtlasSnapshot | null> {
+  const started = performance.now();
   const resolvedRoot = resolve(root);
   const sourceDirectory = await findSourceRoot(resolvedRoot);
   if (sourceDirectory === null || nodePath.length === 0) return null;
@@ -130,9 +142,11 @@ export async function extractSourceFocus(
     files.map(async (file) => ({file, text: await readFile(file.absolute, 'utf8')})),
   );
   const importsOf = new Map<string, readonly string[]>();
+  const measured = new Map<string, {bytes: number; lines: number}>();
 
   for (const {file, text} of texts) {
     importsOf.set(file.absolute, resolveImports(file.absolute, text, aliases));
+    measured.set(file.absolute, measureText(text));
   }
 
   const focusPaths = new Set(focus.map((file) => file.absolute));
@@ -161,7 +175,7 @@ export async function extractSourceFocus(
     });
   }
 
-  const parts = focusParts(visible, nodePath, resolvedRoot);
+  const parts = focusParts(visible, nodePath, resolvedRoot, measured);
   const nodes: PackageNode[] = parts
     .map((part) => ({
       id: part.id,
@@ -170,6 +184,7 @@ export async function extractSourceFocus(
       path: part.path,
       description: part.inside ? '' : 'Outside this part.',
       ...(part.files ? {files: part.files} : {}),
+      ...(part.measures.length > 0 ? {measures: part.measures} : {}),
     }))
     .sort((left, right) => (left.id < right.id ? -1 : left.id > right.id ? 1 : 0));
 
@@ -198,6 +213,7 @@ export async function extractSourceFocus(
     extractedAt: new Date().toISOString(),
     root: resolvedRoot,
     kind: 'source',
+    scan: scanFrom(started, nodes),
   };
 }
 
@@ -206,6 +222,7 @@ interface FocusPart {
   readonly path: string;
   readonly inside: boolean;
   readonly files?: readonly string[];
+  readonly measures: readonly FileMeasure[];
   readonly absolutes: readonly string[];
 }
 
@@ -219,6 +236,7 @@ function focusParts(
   visible: readonly SourceFile[],
   nodePath: string,
   resolvedRoot: string,
+  measured: ReadonlyMap<string, {bytes: number; lines: number}>,
 ): FocusPart[] {
   const inside: SourceFile[] = [];
   const outside: SourceFile[] = [];
@@ -251,6 +269,14 @@ function focusParts(
         path: `${nodePath}/${id}`,
         inside: true,
         ...(listed ? {files: listed} : {}),
+        measures: measuresOf(
+          members,
+          (file) =>
+            folder
+              ? restUnder(file, nodePath, resolvedRoot).slice(id.length + 1)
+              : (file.relativeToSource.split('/').pop() ?? file.relativeToSource),
+          measured,
+        ),
         absolutes: members.map((file) => file.absolute),
       });
     }
@@ -261,6 +287,7 @@ function focusParts(
         id: base,
         path: toPosix(relative(resolvedRoot, file.absolute)),
         inside: true,
+        measures: [sized(base, file.absolute, measured)],
         absolutes: [file.absolute],
       });
     }
@@ -277,11 +304,31 @@ function focusParts(
       id,
       path: toPosix(relative(resolvedRoot, file.absolute)),
       inside: false,
+      measures: [sized(id, file.absolute, measured)],
       absolutes: [file.absolute],
     });
   }
 
   return parts;
+}
+
+function measuresOf(
+  members: readonly SourceFile[],
+  pathOf: (file: SourceFile) => string,
+  measured: ReadonlyMap<string, {bytes: number; lines: number}>,
+): FileMeasure[] {
+  return members
+    .map((file) => sized(pathOf(file), file.absolute, measured))
+    .sort((left, right) => (left.path < right.path ? -1 : left.path > right.path ? 1 : 0));
+}
+
+function sized(
+  path: string,
+  absolute: string,
+  measured: ReadonlyMap<string, {bytes: number; lines: number}>,
+): FileMeasure {
+  const size = measured.get(absolute) ?? {bytes: 0, lines: 0};
+  return {path, bytes: size.bytes, lines: size.lines};
 }
 
 function restUnder(file: SourceFile, nodePath: string, resolvedRoot: string): string {

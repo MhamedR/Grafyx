@@ -46,6 +46,14 @@ test('a single project is drawn as its src structure', async () => {
       'the folder tooltip lists its files',
     );
     assert(agents?.path === 'src/agents', 'the node records the source path');
+    const agentMeasure = agents?.measures?.find((measure) => measure.path === 'CodingAgent.ts');
+    assert(
+      agentMeasure !== undefined && agentMeasure.bytes > 0 && agentMeasure.lines > 0,
+      'a folder records the size of each file',
+    );
+    assert(snapshot.scan?.fileCount === 5, 'the scan counts every source file');
+    assert((snapshot.scan?.byteCount ?? 0) > 0, 'the scan totals the bytes it read');
+    assert((snapshot.scan?.durationMs ?? -1) >= 0, 'the scan records how long it took');
 
     const edge = (from: string, to: string) =>
       snapshot.edges.some(

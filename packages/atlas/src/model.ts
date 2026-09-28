@@ -45,6 +45,22 @@ export const READING_LINE = 'Reading workspace';
 
 export const EMPTY_LINE = 'This root has no packages.';
 
+/** Byte and line count for one source file the extractor read. */
+export interface FileMeasure {
+  /** Path relative to the node. Matches `files` when that list is present. */
+  readonly path: string;
+  readonly bytes: number;
+  readonly lines: number;
+}
+
+/** How long the scan took, and how much source it read. */
+export interface ScanStats {
+  readonly durationMs: number;
+  readonly fileCount: number;
+  readonly byteCount: number;
+  readonly lineCount: number;
+}
+
 export interface PackageNode {
   readonly id: string;
   readonly version: string;
@@ -53,6 +69,8 @@ export interface PackageNode {
   readonly description: string;
   /** Source files inside a structure node. Package nodes omit this. */
   readonly files?: readonly string[];
+  /** Present once the extractor has read the source. Ordered by `path`. */
+  readonly measures?: readonly FileMeasure[];
 }
 
 /** A source node is a folder when it lists files, and a file otherwise. */
@@ -67,12 +85,42 @@ export function nodeShape(kind: AtlasSnapshot['kind'], node: PackageNode): NodeS
   return 'folder';
 }
 
+export function nodeBytes(node: PackageNode): number {
+  let bytes = 0;
+  for (const measure of node.measures ?? []) bytes += measure.bytes;
+  return bytes;
+}
+
+export function formatBytes(bytes: number): string {
+  if (!Number.isFinite(bytes) || bytes <= 0) return '0 B';
+  if (bytes < 1024) return `${Math.round(bytes)} B`;
+
+  const units = ['KB', 'MB', 'GB'] as const;
+  let value = bytes / 1024;
+  let unit: (typeof units)[number] = 'KB';
+  if (value >= 1024) {
+    value /= 1024;
+    unit = 'MB';
+  }
+  if (value >= 1024) {
+    value /= 1024;
+    unit = 'GB';
+  }
+
+  const rounded = value >= 10 ? Math.round(value) : Math.round(value * 10) / 10;
+  return `${rounded} ${unit}`;
+}
+
 export function nodeCaption(node: PackageNode, shape: NodeShape | null): string {
+  const weight = node.measures && node.measures.length > 0 ? formatBytes(nodeBytes(node)) : null;
+
   if (shape === 'folder' && node.files) {
     const count = node.files.length;
-    return `${count} ${count === 1 ? 'file' : 'files'}`;
+    const files = `${count} ${count === 1 ? 'file' : 'files'}`;
+    return weight ? `${files} · ${weight}` : files;
   }
-  if (shape === 'file' && node.version.length === 0) return 'file';
+  if (shape === 'file' && node.version.length === 0) return weight ?? 'file';
+  if (weight && node.version.length > 0) return `${node.version} · ${weight}`;
   return node.version;
 }
 
@@ -90,6 +138,8 @@ export interface AtlasSnapshot {
   readonly root: string;
   /** `source` is a src tree. Omitted snapshots are workspace package maps. */
   readonly kind?: 'workspace' | 'source';
+  /** Cost of the scan that produced this snapshot. */
+  readonly scan?: ScanStats;
 }
 
 export interface AtlasBoot {

@@ -21,6 +21,7 @@ import {
   LENS_QUESTION,
   SOURCE_LENS_QUESTION,
   READING_LINE,
+  formatBytes,
   nodeCaption,
   nodeShape,
   type AtlasBoot,
@@ -38,6 +39,7 @@ import {
 import {buildExportPicture, exportFilename} from '../export.js';
 import {connectionCurve} from './curves.js';
 import {savePicture} from './paint.js';
+import {StatsBoard} from './stats.js';
 
 const EASE = 'cubic-bezier(0.2, 0.8, 0.2, 1)';
 
@@ -114,6 +116,7 @@ function Picture({
   const [menu, setMenu] = useState<{id: string; x: number; y: number} | null>(null);
   const [exportOpen, setExportOpen] = useState(false);
   const [exportError, setExportError] = useState<string | null>(null);
+  const [board, setBoard] = useState<'map' | 'stats'>('map');
   const crumbs = useStore(stores.crumbs);
 
   useLayoutEffect(() => {
@@ -190,7 +193,12 @@ function Picture({
   const hoveredPlace = layout?.nodes.find((node) => node.id === hoveredId) ?? null;
   const acyclic = buildOrder.kind === 'order';
   const questions = snapshot?.kind === 'source' ? SOURCE_LENS_QUESTION : LENS_QUESTION;
-  const question = lens === 'cycles' && acyclic ? CYCLE_CLEAR : questions[lens];
+  const question =
+    board === 'stats'
+      ? 'Where the weight sits, and how far a change reaches.'
+      : lens === 'cycles' && acyclic
+        ? CYCLE_CLEAR
+        : questions[lens];
   const filter = query.trim().toLowerCase();
 
   return (
@@ -294,12 +302,26 @@ function Picture({
                 key={item}
                 type="button"
                 data-lens={item}
-                data-active={item === lens ? 'true' : 'false'}
-                onClick={() => session.setLens(item)}
+                data-active={board === 'map' && item === lens ? 'true' : 'false'}
+                onClick={() => {
+                  setBoard('map');
+                  session.setLens(item);
+                }}
               >
                 {item}
               </button>
             ))}
+            <button
+              type="button"
+              data-lens="stats"
+              data-active={board === 'stats' ? 'true' : 'false'}
+              onClick={() => {
+                session.setHovered(null);
+                setBoard('stats');
+              }}
+            >
+              stats
+            </button>
           </nav>
           <p className="question" data-question>
             {question}
@@ -334,6 +356,8 @@ function Picture({
           <div className="field-message" data-state="empty">
             <p>{EMPTY_LINE}</p>
           </div>
+        ) : board === 'stats' && snapshot ? (
+          <StatsBoard snapshot={snapshot} onSelect={(id) => session.select(id)} />
         ) : layout && layout.nodes.length > 0 ? (
           <Fitted layout={layout} scale={pictureScale(layout)}>
             <Graph
@@ -363,7 +387,7 @@ function Picture({
             />
           </Fitted>
         ) : null}
-        {hovered && snapshot && draggingId === null && menu === null ? (
+        {board === 'map' && hovered && snapshot && draggingId === null && menu === null ? (
           <PackageTooltip
             snapshot={snapshot}
             node={hovered}
@@ -504,9 +528,15 @@ function Inspector({
         <div className="split">
           <p className="split-label">Files</p>
           <ul>
-            {node.files.map((file) => (
-              <li key={file}>{file}</li>
-            ))}
+            {node.files.map((file) => {
+              const measure = node.measures?.find((item) => item.path === file);
+              return (
+                <li key={file}>
+                  {file}
+                  {measure ? ` · ${formatBytes(measure.bytes)}` : ''}
+                </li>
+              );
+            })}
           </ul>
         </div>
       ) : null}

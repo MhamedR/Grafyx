@@ -101,6 +101,11 @@ test('discovers dependencies and re-exports in a temporary workspace', async () 
       snapshot.edges.every((item) => item.from !== 'typescript'),
       'registry dependencies are not workspace edges',
     );
+    const pkgA = snapshot.nodes.find((node) => node.id === 'pkg-a');
+    assert(pkgA?.measures?.length === 1, 'a package records its source files');
+    assert(pkgA?.measures?.[0]?.path === 'index.ts', 'the measure path is inside the package');
+    assert(pkgA?.measures?.[0]?.lines === 1, 'the measure counts lines');
+    assert(snapshot.scan?.fileCount === 2, 'the scan counts source in every package');
   } finally {
     await rm(root, {recursive: true, force: true});
   }
