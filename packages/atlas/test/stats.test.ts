@@ -86,7 +86,7 @@ test('structure stats omit empty parts and break ties on the label', () => {
     private: false,
     path: 'heavy',
     description: '',
-    files,
+    files: files.map((file) => file.path),
     measures: [...files, {path: 'heavy/already.ts', bytes: 100, lines: 1}],
   };
   const tied: PackageNode = {
