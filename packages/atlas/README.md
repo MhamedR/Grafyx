@@ -229,7 +229,7 @@ Export is a browser feature of the map. The library API does not expose it.
 | **−** / **+**                            | Zoom out or in, from 50% to 275% of the fitted picture                                                  |
 | Click the zoom percentage                | Reset zoom and pan                                                                                      |
 | Wheel                                    | Zoom toward the pointer                                                                                 |
-| Drag the empty field                     | Pan, once the picture is larger than the frame                                                         |
+| Drag the empty field                     | Pan, once the picture is larger than the frame                                                          |
 | Drag the top edge of the filmstrip       | Resize it                                                                                               |
 | **hide** / **order**                     | Collapse the filmstrip, or open it again                                                                |
 | Right-click a folder                     | **Go deeper**                                                                                           |
