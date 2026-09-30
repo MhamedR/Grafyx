@@ -82,6 +82,13 @@ button {
   min-width: 0;
 }
 
+.header-tools {
+  display: flex;
+  align-items: baseline;
+  gap: 18px;
+  flex: none;
+}
+
 .wordmark {
   flex: none;
   margin: 0;
@@ -107,10 +114,23 @@ button {
 }
 
 .root-path {
+  flex: 1 1 auto;
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  text-align: left;
+}
+
+.root-path:hover {
+  color: var(--copper);
+}
+
+.path-copied {
+  flex: none;
+  color: var(--copper);
+  font-size: 12px;
+  letter-spacing: 0.04em;
 }
 
 .direction {
@@ -198,6 +218,8 @@ button {
 .node:focus-visible,
 .filmstrip button:focus-visible,
 .export > button:focus-visible,
+.zoom button:focus-visible,
+.order-toggle:focus-visible,
 .command input:focus-visible {
   outline: 1px solid var(--copper);
   outline-offset: 3px;
@@ -225,6 +247,61 @@ button {
   min-width: 0;
   min-height: 0;
   overflow: hidden;
+}
+
+.stage[data-pannable='true'] {
+  cursor: grab;
+}
+
+.stage[data-panning='true'] {
+  cursor: grabbing;
+}
+
+.fit-scale,
+.fit-scale > div {
+  transition:
+    transform 180ms var(--ease),
+    width 180ms var(--ease),
+    height 180ms var(--ease),
+    margin-top 180ms var(--ease);
+}
+
+.fit[data-moving='true'] .fit-scale,
+.fit[data-moving='true'] .fit-scale > div,
+.app[data-reduced='true'] .fit-scale,
+.app[data-reduced='true'] .fit-scale > div {
+  transition: none;
+}
+
+.zoom {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.zoom button {
+  color: var(--muted);
+  font-size: 13px;
+  letter-spacing: 0.08em;
+  font-variant-numeric: tabular-nums;
+}
+
+.zoom-level {
+  min-width: 3.2em;
+  text-align: center;
+}
+
+.zoom button:hover:not(:disabled) {
+  color: var(--copper);
+}
+
+.zoom button:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.zoom .zoom-level:disabled {
+  opacity: 1;
 }
 
 .stats {
@@ -728,7 +805,17 @@ button {
   padding: 10px 12px 8px;
   background: var(--node);
   border: 1px solid var(--hairline);
+  opacity: 0;
   pointer-events: none;
+  transition: opacity 160ms var(--ease);
+}
+
+.tooltip[data-shown='true'] {
+  opacity: 1;
+}
+
+.app[data-reduced='true'] .tooltip {
+  transition: none;
 }
 
 .tooltip-name {
@@ -815,6 +902,16 @@ button {
   max-width: 188px;
 }
 
+.inspector li {
+  overflow-wrap: anywhere;
+}
+
+.file-count {
+  margin: 0;
+  font-size: 12px;
+  letter-spacing: 0.04em;
+}
+
 .inspector-name {
   margin: 0 0 8px;
   font-family: var(--serif);
@@ -845,13 +942,88 @@ button {
 }
 
 .footer {
+  position: relative;
+  z-index: 5;
   grid-column: 1 / -1;
   display: grid;
   grid-template-columns: minmax(0, 1fr) 240px;
   gap: 18px;
-  align-items: end;
-  padding: 8px 18px 14px;
+  align-items: start;
+  padding: 10px 40px 14px 18px;
+  background: var(--field);
   border-top: 1px solid var(--hairline);
+  overflow: hidden;
+}
+
+.footer[data-collapsed='false'] {
+  max-height: min(520px, 55vh);
+}
+
+.footer[data-collapsed='true'] {
+  height: 0;
+  min-height: 0;
+  max-height: 0;
+  padding: 0;
+  background: transparent;
+  border-top-width: 0;
+  overflow: visible;
+}
+
+.order-resize {
+  position: absolute;
+  z-index: 1;
+  top: 0;
+  right: 0;
+  left: 0;
+  height: 8px;
+  cursor: ns-resize;
+  touch-action: none;
+}
+
+.order-resize::after {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 50%;
+  width: 36px;
+  height: 2px;
+  background: var(--hairline);
+  transform: translateX(-50%);
+}
+
+.order-resize:hover::after,
+.order-resize:focus-visible::after {
+  background: var(--copper);
+}
+
+.order-toggle {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  min-height: 64px;
+  color: var(--muted);
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: lowercase;
+  writing-mode: vertical-rl;
+}
+
+.order-toggle:hover {
+  color: var(--copper);
+}
+
+.footer[data-collapsed='true'] .order-toggle {
+  top: auto;
+  bottom: 0;
+  height: 76px;
+  background: var(--field);
+  border: 1px solid var(--hairline);
+  border-bottom: 0;
+  transform: translateY(-100%);
 }
 
 .export {
@@ -900,6 +1072,9 @@ button {
   padding: 0;
   list-style: none;
   min-width: 0;
+  align-self: start;
+  max-height: 100%;
+  overflow: auto;
 }
 
 .filmstrip li {

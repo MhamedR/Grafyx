@@ -1,6 +1,6 @@
 {
   "name": "grafyx-atlas",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "A reactive, animated map of software structure.",
   "type": "module",
   "main": "./dist/index.js",

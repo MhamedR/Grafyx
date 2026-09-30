@@ -51,7 +51,7 @@ code --install-extension grafyx.grafyx-atlas-vscode
 From a packaged file:
 
 ```bash
-code --install-extension grafyx-atlas-vscode-1.0.1.vsix
+code --install-extension grafyx-atlas-vscode-1.1.0.vsix
 ```
 
 The extension runs in the workspace extension host. It needs VS Code 1.95 or newer and Node.js 20 or newer.
@@ -62,13 +62,17 @@ The extension runs in the workspace extension host. It needs VS Code 1.95 or new
 
 The line under the wordmark sets the one rule: **A → B means A must exist before B. Rank 0 has no incoming edge.**
 
+The path beside the wordmark starts as the project root. Select a part and it becomes that part's location. After you go deeper, with nothing selected, it shows the depth you are in. A long path shortens in the middle and keeps the start and the end. Hover it for the full path, and click it to copy. **copied** confirms the clipboard write.
+
 Refresh the tab to rescan. The server reads the tree again on every load. Unsaved buffers are not part of that read: save first, and the command names any dirty files it had to skip.
 
 ## How to read the map
 
 An arrow runs from the thing that must exist first to the thing that depends on it. On a source map, an imported part points at the part that imports it. So `models → services` means `services` imports `models`.
 
-Folders are drawn as folders and list their file count; loose files are drawn as pages. The strip along the bottom, the filmstrip, is the same schedule as a list, one column per rank.
+Folders are drawn as folders and list their file count; loose files are drawn as pages. The strip along the bottom, the filmstrip, is the same schedule as a list, one column per rank. Drag its top edge to give the names more room; they stay at the top of the strip. The handle on the right hides it, and **order** opens it again.
+
+To the left of **export**, **−** and **+** zoom the fitted picture. The percentage between them is the scale. **100%** fits the picture to the frame. Click it to reset zoom and pan. The range is 50% to 275%. The wheel zooms toward the pointer. When the picture is larger than the frame, drag the empty field to move it. **stats** hides these controls.
 
 For `rag-frontend/src/app`:
 
@@ -92,7 +96,7 @@ The five lenses sit at the top of the left rail. Each one has a sentence under i
 
 **map** is the whole source, in dependency order: "The source, in dependency order."
 
-Every node and edge is lit. Click a node to select it, and the rail lists its path, its files, and every edge touching it. Hover the same node and a tooltip repeats that, with its rank. Each edge is marked **stands on** (this part depends on that one) or **before** (this part must exist before that one).
+Every node and edge is lit. Click a node to select it, and the rail lists its path, its files, and every edge touching it. Hover the same node and, after a short pause, a tooltip repeats that, with its rank. A pass across the map leaves the tooltip closed. Moving to a nearby node keeps the open tooltip until you rest on the next one. A folder with more than 24 files shows the count, such as `30 files`, in the rail and in the tooltip. Shorter lists stay listed, with each file's size in the rail. The filter still matches file names that are not drawn. Each edge is marked **stands on** (this part depends on that one) or **before** (this part must exist before that one).
 
 Here `services` is selected. It holds six files, stands on `models`, and comes before `app.component.ts`, `components`, `guards`, and `interceptors`.
 
@@ -130,7 +134,7 @@ This second picture is a four-file example made for the atlas guide, since the A
 
 ![Order lens: the schedule from models to app.config.ts](https://raw.githubusercontent.com/MhamedR/Grafyx/main/packages/atlas/docs/order.png)
 
-**order** is "The schedule, and only the schedule." The arrows fall back to a hairline and you read the ranks, left to right: `models`, then `services`, then `app.component.ts`, `components`, `guards`, and `interceptors`, then `app.routes.ts`, and `app.config.ts` last. The filmstrip is the same list.
+**order** is "The schedule, and only the schedule." The arrows fall back to a hairline and you read the ranks, left to right: `models`, then `services`, then `app.component.ts`, `components`, `guards`, and `interceptors`, then `app.routes.ts`, and `app.config.ts` last. The filmstrip is the same list. Drag its top edge to resize it, or hide it from the handle on the right.
 
 ## Stats
 
@@ -165,7 +169,7 @@ Click `app` in the breadcrumb to climb back to the folder map. A folder with not
 
 ![The export menu: Draw.io, PDF, JPEG](https://raw.githubusercontent.com/MhamedR/Grafyx/main/packages/atlas/docs/export.png)
 
-**export** sits at the top right of the map. It saves the picture on screen: the lens you have open, the selected node, any name you have typed to dim the rest, and any node you have dragged.
+**export** sits at the top right of the map, beside the zoom controls. It saves the picture on screen: the lens you have open, the selected node, any name you have typed to dim the rest, and any node you have dragged.
 
 | Format      | What you get                                                                        |
 | ----------- | ----------------------------------------------------------------------------------- |
@@ -193,6 +197,8 @@ The file name is the last folder of the project root and the lens: `<project>-<l
 Open Map, Show Impact, Show Upstream, and Go Deeper are on the Explorer context menu. Show Impact and Show Upstream are on the editor context menu.
 
 Inside the map, the same command box accepts either word first. A part name can be partial as long as it matches only one node. Arrow keys step along edges; Shift and the arrow keys step the other way. Escape clears the filter and the selection.
+
+The header path copies when you click it. **−**, the scale, and **+** zoom the picture; click the percentage to fit it again, and use the wheel to zoom toward the pointer. Drag the empty field to pan once the picture is larger than the frame. Drag the top of the filmstrip to resize it, or use **hide** and **order** on its right edge. The [grafyx-atlas readme](https://github.com/MhamedR/Grafyx/blob/main/packages/atlas/README.md#controls) has the full control table.
 
 The text of each command is also written to the **Grafyx Atlas** output channel.
 
@@ -252,7 +258,7 @@ npm run typecheck
 npm run package -w grafyx-atlas-vscode
 ```
 
-`npm test` builds grafyx and grafyx-atlas first, then runs this package's tests with the rest of the suite. The package command writes `grafyx-atlas-vscode-1.0.1.vsix` in this directory. The vsix contains the bundled adapter and the prebuilt map UI.
+`npm test` builds grafyx and grafyx-atlas first, then runs this package's tests with the rest of the suite. The package command writes `grafyx-atlas-vscode-1.1.0.vsix` in this directory. The vsix contains the bundled adapter and the prebuilt map UI.
 
 See [CONTRIBUTING.md](https://github.com/MhamedR/Grafyx/blob/main/CONTRIBUTING.md) for the repository's checks.
 

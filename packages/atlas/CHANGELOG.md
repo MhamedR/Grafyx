@@ -1,5 +1,12 @@
 # grafyx-atlas
 
+## 1.1.0
+
+### Minor Changes
+
+- Zoom from the header, with the current scale, instead of controls drawn on the map. The path beside the title follows the selection, shortens with an ellipsis when it is long, and copies to the clipboard. The order strip can be resized and hidden, long file lists collapse to a count, and tooltips wait before they open.
+- 5a6308e: Export `startAtlasServer` from `grafyx-atlas/server` so an editor can host the map without spawning the CLI. Importing the entry does not listen.
+
 ## 1.0.0
 
 ### Major Changes

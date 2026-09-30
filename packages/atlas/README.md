@@ -44,7 +44,10 @@ A dependency list tells you what imports what. It does not tell you what order t
 - **Five lenses** that answer one question each: map, impact, upstream, cycles, order.
 - **Stats.** The heaviest files, the weight of each part, how far a change reaches, how the parts couple, and what the scan cost.
 - **Go deeper.** Right-click a folder to see the files inside it and the files one import away.
-- **Inspect anything.** Hover a node for its files and edges; click it to pin those details in the rail.
+- **Inspect anything.** Hover a node and, after a short pause, a tooltip lists its files and edges. Click it to pin those details in the rail. A folder with more than 24 files shows the count instead of every name.
+- **The path.** Beside the wordmark. It follows the selected part, shortens in the middle when it is long, and copies to the clipboard when you click it.
+- **Zoom.** **−**, the current scale, and **+** sit in the header, next to export. Click the percentage to fit the picture again. The wheel zooms toward the pointer.
+- **The order strip.** The same schedule as the ranks. Drag its top edge to resize it, or hide it from the handle on the right.
 - **Export** the current picture to Draw.io (editable), PDF, or JPEG.
 - **Keyboard first.** A command box (`services impact`), type-to-filter, and arrow-key navigation along edges.
 - **Library API.** The extractors and graph algorithms behind the UI are exported from `grafyx-atlas`.
@@ -97,9 +100,13 @@ npm run dev -w grafyx-atlas -- --root /absolute/path/to/your-app/src/app
 
 The line under the wordmark sets the one rule: **A → B means A must exist before B. Rank 0 has no incoming edge.**
 
+The path beside the wordmark starts as the project root. Select a part and it becomes that part's location. After you go deeper, with nothing selected, it shows the depth you are in. A long path shortens in the middle and keeps the start and the end. Hover it for the full path, and click it to copy. **copied** confirms the clipboard write.
+
+To the left of **export**, **−** and **+** zoom the fitted picture. The percentage between them is the scale. **100%** fits the picture to the frame. Click it to reset zoom and pan. The range is 50% to 275%. The wheel zooms toward the pointer. When the picture is larger than the frame, drag the empty field to move it. **stats** hides these controls.
+
 An arrow runs from the thing that must exist first to the thing that depends on it. On a source map, an imported part points at the part that imports it. So `models → services` means `services` imports `models`.
 
-Folders are drawn as folders and list their file count; loose files are drawn as pages. The strip along the bottom, the filmstrip, is the same schedule as a list, one column per rank.
+Folders are drawn as folders and list their file count; loose files are drawn as pages. The strip along the bottom, the filmstrip, is the same schedule as a list, one column per rank. Drag its top edge to give the names more room; they stay at the top of the strip. The handle on the right hides it, and **order** opens it again.
 
 For `rag-frontend/src/app`:
 
@@ -123,7 +130,7 @@ The five lenses sit at the top of the left rail. Each one has a sentence under i
 
 **map** is the whole source, in dependency order: "The source, in dependency order."
 
-Every node and edge is lit. Click a node to select it, and the rail lists its path, its files, and every edge touching it. Hover the same node and a tooltip repeats that, with its rank. Each edge is marked **stands on** (this part depends on that one) or **before** (this part must exist before that one).
+Every node and edge is lit. Click a node to select it, and the rail lists its path, its files, and every edge touching it. Hover the same node and, after a short pause, a tooltip repeats that, with its rank. A pass across the map leaves the tooltip closed. Moving to a nearby node keeps the open tooltip until you rest on the next one. A folder with more than 24 files shows the count, such as `30 files`, in the rail and in the tooltip. Shorter lists stay listed, with each file's size in the rail. The filter still matches file names that are not drawn. Each edge is marked **stands on** (this part depends on that one) or **before** (this part must exist before that one).
 
 Here `services` is selected. It holds six files, stands on `models`, and comes before `app.component.ts`, `components`, `guards`, and `interceptors`.
 
@@ -159,7 +166,7 @@ This second picture is a four-file example made for this guide, since the Angula
 
 ![Order lens: the schedule from models to app.config.ts](https://raw.githubusercontent.com/MhamedR/Grafyx/main/packages/atlas/docs/order.png)
 
-**order** is "The schedule, and only the schedule." The arrows fall back to a hairline and you read the ranks, left to right: `models`, then `services`, then `app.component.ts`, `components`, `guards`, and `interceptors`, then `app.routes.ts`, and `app.config.ts` last. The filmstrip is the same list.
+**order** is "The schedule, and only the schedule." The arrows fall back to a hairline and you read the ranks, left to right: `models`, then `services`, then `app.component.ts`, `components`, `guards`, and `interceptors`, then `app.routes.ts`, and `app.config.ts` last. The filmstrip is the same list. Drag its top edge to resize it, or hide it from the handle on the right.
 
 ## Stats
 
@@ -194,7 +201,7 @@ Click `app` in the breadcrumb to climb back to the folder map. When you have gon
 
 ![The export menu: Draw.io, PDF, JPEG](https://raw.githubusercontent.com/MhamedR/Grafyx/main/packages/atlas/docs/export.png)
 
-**export** sits at the top right. It saves the picture on screen: the lens you have open, the selected node, any name you have typed to dim the rest, and any node you have dragged. Choose a format from the menu and the browser downloads the file.
+**export** sits at the top right, beside the zoom controls. It saves the picture on screen: the lens you have open, the selected node, any name you have typed to dim the rest, and any node you have dragged. Choose a format from the menu and the browser downloads the file.
 
 | Format      | What you get                                                                                                                                                                                                       |
 | ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
@@ -216,8 +223,15 @@ Export is a browser feature of the map. The library API does not expose it.
 | ---------------------------------------- | ------------------------------------------------------------------------------------------------------- |
 | Click a node, or a name in the filmstrip | Select it                                                                                               |
 | Click the empty field                    | Clear the selection                                                                                     |
-| Hover a node                             | Tooltip with rank, path, files, and edges                                                               |
+| Click the path beside the wordmark       | Copy the full path                                                                                      |
+| Hover a node                             | After a short pause, a tooltip with rank, path, files, and edges                                        |
 | Drag a node                              | Move it; the arrows follow                                                                              |
+| **−** / **+**                            | Zoom out or in, from 50% to 275% of the fitted picture                                                  |
+| Click the zoom percentage                | Reset zoom and pan                                                                                      |
+| Wheel                                    | Zoom toward the pointer                                                                                 |
+| Drag the empty field                     | Pan, once the picture is larger than the frame                                                         |
+| Drag the top edge of the filmstrip       | Resize it                                                                                               |
+| **hide** / **order**                     | Collapse the filmstrip, or open it again                                                                |
 | Right-click a folder                     | **Go deeper**                                                                                           |
 | Type letters (command box not focused)   | Dim every node whose name and files do not match; Backspace deletes                                     |
 | Arrow keys                               | Step the selection to a part it comes before; with nothing selected, select the first part in the order |

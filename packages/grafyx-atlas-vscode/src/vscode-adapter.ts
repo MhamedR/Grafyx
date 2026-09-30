@@ -57,7 +57,7 @@ export function createVsCodeHost(
   </style>
 </head>
 <body>
-  <iframe src="${src}" title="Grafyx Atlas"></iframe>
+  <iframe src="${src}" title="Grafyx Atlas" allow="clipboard-write"></iframe>
 </body>
 </html>`;
 

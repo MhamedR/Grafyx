@@ -220,7 +220,7 @@ npm run bench:regression # executable CI performance budgets
 npm run atlas       # open grafyx/atlas on this repository
 ```
 
-[packages/atlas/README.md](packages/atlas/README.md) walks the map on a real project: map, impact, upstream, cycles, order, Go deeper, and export.
+[packages/atlas/README.md](packages/atlas/README.md) walks the map on a real project: the path and zoom in the header, the lenses, the order strip, Go deeper, and export.
 
 CI runs `npm run ci` on `main` and pull requests.
 

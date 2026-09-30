@@ -1,7 +1,10 @@
 import {test} from 'node:test';
 import {assert} from '../../../test/assert.js';
 import {
+  FILE_LIST_LIMIT,
   atlasEdgeId,
+  fileCountLabel,
+  filesForList,
   formatBytes,
   nodeCaption,
   type AtlasSnapshot,
@@ -153,4 +156,28 @@ test('structure stats omit empty parts and break ties on the label', () => {
   assert(nodeCaption(tied, 'file') === '40 B', 'a measured file shows its size');
   assert(nodeCaption(heavy, null) === '1.0.0 · 550 B', 'a package caption keeps its version');
   assert(nodeCaption(empty, null) === '0.0.0', 'a package without measures shows its version');
+});
+
+test('long file lists collapse to a count and short ones stay listed', () => {
+  const short: PackageNode = {
+    id: 'short',
+    version: '',
+    private: false,
+    path: 'short',
+    description: '',
+    files: ['a.ts', 'b.ts'],
+  };
+  const listed = filesForList(short);
+  assert(listed?.length === 2 && listed[0] === 'a.ts', 'a short folder keeps its file names');
+  assert(filesForList({...short, files: []}) === null, 'an empty folder has nothing to list');
+
+  const count = FILE_LIST_LIMIT + 1;
+  const long: PackageNode = {
+    ...short,
+    id: 'long',
+    files: Array.from({length: count}, (_, index) => `f${index}.ts`),
+  };
+  assert(filesForList(long) === null, 'a long folder does not render every name');
+  assert(fileCountLabel(count) === `${count} files`, 'the compact label is the file count');
+  assert(nodeCaption(long, 'folder') === `${count} files`, 'the caption uses the same count');
 });

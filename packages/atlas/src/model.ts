@@ -111,12 +111,28 @@ export function formatBytes(bytes: number): string {
   return `${rounded} ${unit}`;
 }
 
+/** File names drawn in the rail and tooltip. Longer folders show a count. */
+export const FILE_LIST_LIMIT = 24;
+
+export function fileCountLabel(count: number): string {
+  return `${count} ${count === 1 ? 'file' : 'files'}`;
+}
+
+/**
+ * Files to render for a folder. `null` when the folder is empty or past
+ * `FILE_LIST_LIMIT`; the names stay on the node for search and for going deeper.
+ */
+export function filesForList(node: PackageNode): readonly string[] | null {
+  const files = node.files ?? [];
+  if (files.length === 0 || files.length > FILE_LIST_LIMIT) return null;
+  return files;
+}
+
 export function nodeCaption(node: PackageNode, shape: NodeShape | null): string {
   const weight = node.measures && node.measures.length > 0 ? formatBytes(nodeBytes(node)) : null;
 
   if (shape === 'folder' && node.files) {
-    const count = node.files.length;
-    const files = `${count} ${count === 1 ? 'file' : 'files'}`;
+    const files = fileCountLabel(node.files.length);
     return weight ? `${files} · ${weight}` : files;
   }
   if (shape === 'file' && node.version.length === 0) return weight ?? 'file';
