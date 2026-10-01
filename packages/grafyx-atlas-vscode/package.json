@@ -175,9 +175,9 @@
     "grafyx-atlas": "1.2.0"
   },
   "devDependencies": {
-    "@types/node": "^26.6.2",
+    "@types/node": "^26.6.3",
     "@types/vscode": "^1.95.0",
-    "@vscode/vsce": "^3.6.0",
-    "esbuild": "^0.25.10"
+    "@vscode/vsce": "^4.0.0",
+    "esbuild": "^0.28.2"
   }
 }
