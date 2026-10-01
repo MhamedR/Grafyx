@@ -78,11 +78,61 @@ test('grafyx-atlas --help prints the options and exits', async () => {
   assert(help.stdout.includes('--root <path>'), 'help lists --root');
   assert(help.stdout.includes('--port <number>'), 'help lists --port');
   assert(help.stdout.includes('--no-open'), 'help lists --no-open');
+  assert(help.stdout.includes('--mcp'), 'help lists --mcp');
 
   const short = await runCli(['-h']);
   assert(short.code === 0, '-h exits 0');
   assert(short.stdout.includes('Usage: grafyx-atlas'), '-h prints the same usage');
 });
+
+test(
+  'grafyx-atlas --mcp answers initialize on stdio',
+  {skip: !existsSync(grafyxEntry)},
+  async () => {
+    const root = await sourceFixture();
+    const child = spawn(process.execPath, [tsx, 'src/server.ts', '--mcp', '--root', root], {
+      cwd: atlasDir,
+      env: {...process.env, CI: 'true'},
+    });
+
+    const reply = await new Promise<string>((resolve, reject) => {
+      const timer = setTimeout(() => reject(new Error('MCP did not answer.')), 20_000);
+      let stdout = '';
+      child.stdout.on('data', (chunk: Buffer) => {
+        stdout += chunk.toString();
+        if (stdout.includes('\n')) {
+          clearTimeout(timer);
+          resolve(stdout);
+        }
+      });
+      child.on('error', (error) => {
+        clearTimeout(timer);
+        reject(error);
+      });
+      child.stdin.write(
+        `${JSON.stringify({
+          jsonrpc: '2.0',
+          id: 1,
+          method: 'initialize',
+          params: {
+            protocolVersion: '2025-03-26',
+            capabilities: {},
+            clientInfo: {name: 'cli-test', version: '0'},
+          },
+        })}\n`,
+      );
+    });
+
+    try {
+      const line = reply.trim().split('\n')[0] ?? '';
+      const message = JSON.parse(line) as {result?: {serverInfo?: {name?: string}}};
+      assert(message.result?.serverInfo?.name === 'grafyx-atlas', 'the CLI speaks MCP');
+    } finally {
+      child.kill('SIGTERM');
+      await rm(root, {recursive: true, force: true});
+    }
+  },
+);
 
 test(
   'the CLI serves the map, snapshot, and a deeper folder',

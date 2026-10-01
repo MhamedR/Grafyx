@@ -13,6 +13,7 @@ import {existsSync} from 'node:fs';
 import {access} from 'node:fs/promises';
 import {platform} from 'node:os';
 import {join, resolve} from 'node:path';
+import {startAtlasMcpServer} from './mcp.js';
 import {atlasServerDirectory, startAtlasServer} from './server-app.js';
 
 const here = atlasServerDirectory();
@@ -20,10 +21,12 @@ const repoRoot = resolve(here, '../../..');
 const packaged = existsSync(join(here, 'ui', 'app.js'));
 
 const USAGE = `Usage: grafyx-atlas [--root <path>] [--port <number>] [--no-open]
+       grafyx-atlas --mcp [--root <path>]
 
   --root <path>    Project to map. Defaults to the current directory.
   --port <number>  Port on 127.0.0.1. Defaults to PORT, then 4318.
-  --no-open        Do not open a browser.`;
+  --no-open        Do not open a browser.
+  --mcp            Speak MCP on stdio instead of serving the map.`;
 
 async function main(): Promise<void> {
   if (process.argv.includes('--help') || process.argv.includes('-h')) {
@@ -32,6 +35,12 @@ async function main(): Promise<void> {
   }
 
   const root = resolve(readOption('--root') ?? (packaged ? process.cwd() : repoRoot));
+
+  if (process.argv.includes('--mcp')) {
+    startAtlasMcpServer({root});
+    return;
+  }
+
   const port = Number(readOption('--port') ?? process.env.PORT ?? 4318);
 
   if (!packaged) {

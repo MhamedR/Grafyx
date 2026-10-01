@@ -172,7 +172,7 @@
     "test": "node --import tsx --test --test-concurrency=1 test/*.test.ts"
   },
   "dependencies": {
-    "grafyx-atlas": "1.1.0"
+    "grafyx-atlas": "1.2.0"
   },
   "devDependencies": {
     "@types/node": "^26.6.2",

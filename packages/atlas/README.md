@@ -20,6 +20,7 @@ The pictures in this guide are the `src/app` folder of an Angular front end (`ra
 - [Export](#export)
 - [Controls](#controls)
 - [CLI options](#cli-options)
+- [MCP](#mcp)
 - [What Atlas reads](#what-atlas-reads)
 - [Library API](#library-api)
 - [Development](#development)
@@ -51,6 +52,7 @@ A dependency list tells you what imports what. It does not tell you what order t
 - **Export** the current picture to Draw.io (editable), PDF, or JPEG.
 - **Keyboard first.** A command box (`services impact`), type-to-filter, and arrow-key navigation along edges.
 - **Library API.** The extractors and graph algorithms behind the UI are exported from `grafyx-atlas`.
+- **MCP.** Agents can query the same map over the Model Context Protocol.
 
 ## Quick start
 
@@ -245,6 +247,7 @@ In the command box, either word can come first and both are optional. A part nam
 
 ```bash
 grafyx-atlas [--root <path>] [--port <number>] [--no-open]
+grafyx-atlas --mcp [--root <path>]
 ```
 
 | Option            | Default                  | Description                                                                       |
@@ -252,11 +255,68 @@ grafyx-atlas [--root <path>] [--port <number>] [--no-open]
 | `--root <path>`   | The current directory    | The project to scan. A relative path resolves from the current directory.         |
 | `--port <number>` | `PORT`, otherwise `4318` | Port for the server. It listens on `127.0.0.1` only.                              |
 | `--no-open`       | off                      | Do not open a browser. Also skipped when the `CI` environment variable is `true`. |
+| `--mcp`           | off                      | Speak MCP on stdio instead of serving the map.                                    |
 | `--help`, `-h`    |                          | Print the options and exit.                                                       |
 
-The terminal prints the URL and the resolved root when the server starts.
+The terminal prints the URL and the resolved root when the server starts. `--mcp` stays silent on stdout: that stream is JSON-RPC.
 
 From a clone, `npm run dev -w grafyx-atlas -- <options>` takes the same options, but `--root` defaults to the Grafyx repository and resolves from `packages/atlas`.
+
+## MCP
+
+Atlas can speak the [Model Context Protocol](https://modelcontextprotocol.io) on stdio. The tools are the same questions as the lenses: the map, what a change reaches, what a part stands on, where the order is impossible, the schedule, stats, and go deeper. They scan the project; they do not start the web map.
+
+```bash
+npx grafyx-atlas --mcp
+```
+
+`--root` is the project to scan when a tool omits it. Relative paths resolve from the current directory, the same as the HTTP CLI. Cursor, Claude Desktop, and other MCP hosts attach it as a stdio server:
+
+```json
+{
+  "mcpServers": {
+    "grafyx-atlas": {
+      "command": "npx",
+      "args": ["-y", "grafyx-atlas", "--mcp"]
+    }
+  }
+}
+```
+
+Point it at a specific tree with `--root`, or pass `root` on each tool call. A unique prefix is enough for a part id (`serv` selects `services` when that is the only match). Snapshots are cached per root until a call sets `refresh: true`.
+
+| Tool             | Purpose                                                                     |
+| ---------------- | --------------------------------------------------------------------------- |
+| `atlas_map`      | Scan the project and return parts, edges, and scan cost                     |
+| `atlas_impact`   | Downstream parts that must change if this one changes                       |
+| `atlas_upstream` | Upstream parts this one stands on                                           |
+| `atlas_cycles`   | Import or workspace-dependency loops                                        |
+| `atlas_order`    | Build order, or the strongly connected components when there is a loop      |
+| `atlas_stats`    | Largest files, weight by part, change reach, and direct coupling            |
+| `atlas_focus`    | Go deeper into a folder: files inside it and files one import away          |
+| `atlas_path`     | One path from the part that must exist first to the part that depends on it |
+| `atlas_part`     | One part: files, size, neighbours, and degree                               |
+
+Every tool is annotated `readOnlyHint: true`. Invalid input becomes an MCP tool error the model can read.
+
+The same tools are a library on `grafyx-atlas/mcp`. Importing the entry does not listen:
+
+```ts
+import {Server} from '@modelcontextprotocol/sdk/server/index.js';
+import {StdioServerTransport} from '@modelcontextprotocol/sdk/server/stdio.js';
+import {CallToolRequestSchema, ListToolsRequestSchema} from '@modelcontextprotocol/sdk/types.js';
+import {callMcpTool, createAtlasMcpTools, toMcpTools} from 'grafyx-atlas/mcp';
+
+const tools = createAtlasMcpTools({root: '/absolute/path/to/the-app'});
+const server = new Server({name: 'grafyx-atlas', version: '1.2.0'}, {capabilities: {tools: {}}});
+
+server.setRequestHandler(ListToolsRequestSchema, () => ({tools: toMcpTools(tools)}));
+server.setRequestHandler(CallToolRequestSchema, (request) => callMcpTool(tools, request.params));
+
+await server.connect(new StdioServerTransport());
+```
+
+`startAtlasMcpServer({root})` is the stdio server the CLI uses. Pass `input` and `output` to bind other streams.
 
 ## What Atlas reads
 
@@ -307,21 +367,22 @@ cycles(graph);
 
 On a project with a loop, `order` returns `{kind: 'cycle', components}` with the strongly connected components instead of throwing, and `cycles` returns only the loops, for example `[['auth', 'users']]`.
 
-| Export                                                      | Purpose                                                                                                 |
-| ----------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
-| `extractProject(root)`                                      | Choose and run the right extractor. Returns an `AtlasSnapshot` with `kind` `'workspace'` or `'source'`. |
-| `extractWorkspace(root)`, `extractSource(root)`             | Run one extractor directly.                                                                             |
-| `extractSourceFocus(root, path)`                            | The **Go deeper** snapshot for one folder, or `null`.                                                   |
-| `buildPackageGraph(snapshot)`                               | Build the directed graph the algorithms run on.                                                         |
-| `order`, `downstream`, `upstream`, `cycles`, `components`   | The lenses as functions.                                                                                |
-| `path(graph, from, to)`, `degrees(graph, id)`, `relationOf` | A path between two parts, in and out degree, and the relation on one edge.                              |
-| `diffSnapshots(before, after)`                              | Added, removed, and changed nodes and edges between two snapshots.                                      |
-| `structureStats(snapshot)`                                  | Largest files, weight by part, change reach, coupling, and the scan cost.                               |
-| `layoutSnapshot(snapshot, viewport)`, `applyOffsets`        | Rank layout and dragged offsets, as used by the UI.                                                     |
-| `createAtlasSession`, `connectAtlasSession`, `parseCommand` | The reactive session the UI renders, its React stores, and the command box parser.                      |
-| `startAtlasServer({root, port})` from `grafyx-atlas/server` | Bind the local map on `127.0.0.1`. Importing the entry does not listen, and it does not open a browser. |
+| Export                                                                                            | Purpose                                                                                                 |
+| ------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| `extractProject(root)`                                                                            | Choose and run the right extractor. Returns an `AtlasSnapshot` with `kind` `'workspace'` or `'source'`. |
+| `extractWorkspace(root)`, `extractSource(root)`                                                   | Run one extractor directly.                                                                             |
+| `extractSourceFocus(root, path)`                                                                  | The **Go deeper** snapshot for one folder, or `null`.                                                   |
+| `buildPackageGraph(snapshot)`                                                                     | Build the directed graph the algorithms run on.                                                         |
+| `order`, `downstream`, `upstream`, `cycles`, `components`                                         | The lenses as functions.                                                                                |
+| `path(graph, from, to)`, `degrees(graph, id)`, `relationOf`                                       | A path between two parts, in and out degree, and the relation on one edge.                              |
+| `diffSnapshots(before, after)`                                                                    | Added, removed, and changed nodes and edges between two snapshots.                                      |
+| `structureStats(snapshot)`                                                                        | Largest files, weight by part, change reach, coupling, and the scan cost.                               |
+| `layoutSnapshot(snapshot, viewport)`, `applyOffsets`                                              | Rank layout and dragged offsets, as used by the UI.                                                     |
+| `createAtlasSession`, `connectAtlasSession`, `parseCommand`                                       | The reactive session the UI renders, its React stores, and the command box parser.                      |
+| `startAtlasServer({root, port})` from `grafyx-atlas/server`                                       | Bind the local map on `127.0.0.1`. Importing the entry does not listen, and it does not open a browser. |
+| `createAtlasMcpTools`, `toMcpTools`, `callMcpTool`, `startAtlasMcpServer` from `grafyx-atlas/mcp` | Read-only MCP tools and the stdio server. Importing the entry does not listen.                          |
 
-The model types (`AtlasSnapshot`, `PackageNode`, `AtlasEdge`, `Lens`, …) and constants (`LENSES`, `IMPORTS`, `WORKSPACE_DEPENDS`, `BUNDLE_INCLUDES`, …) are exported as well. The dev server stays on `grafyx-atlas/server` so a normal `grafyx-atlas` import still does not start it. The CLI is unchanged: `grafyx-atlas` parses arguments, calls `startAtlasServer`, then opens a browser unless `--no-open` or `CI=true`.
+The model types (`AtlasSnapshot`, `PackageNode`, `AtlasEdge`, `Lens`, …) and constants (`LENSES`, `IMPORTS`, `WORKSPACE_DEPENDS`, `BUNDLE_INCLUDES`, …) are exported as well. The dev server stays on `grafyx-atlas/server` so a normal `grafyx-atlas` import still does not start it. MCP stays on `grafyx-atlas/mcp` for the same reason. The CLI is unchanged for the map: `grafyx-atlas` parses arguments, calls `startAtlasServer`, then opens a browser unless `--no-open` or `CI=true`. `grafyx-atlas --mcp` calls `startAtlasMcpServer` and speaks JSON-RPC on stdio.
 
 ## Development
 
@@ -341,6 +402,7 @@ Source layout:
 | ------------------- | ------------------------------------------------- |
 | `src/server.ts`     | CLI                                               |
 | `src/server-app.ts` | Map server used by the CLI and editor hosts       |
+| `src/mcp.ts`        | MCP tools and stdio JSON-RPC                      |
 | `src/extract-*.ts`  | Workspace and source extractors                   |
 | `src/structural.ts` | Order, impact, upstream, and cycles on the graph  |
 | `src/session.ts`    | Reactive session: selection, lens, filter, layout |
