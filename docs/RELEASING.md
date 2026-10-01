@@ -1,7 +1,7 @@
 # Releasing
 
-Releases are managed with Changesets and
-`.github/workflows/release.yml`.
+Releases are managed with Changesets. Version and publish from a maintainer
+checkout with the scripts below.
 
 ## One-time repository setup
 
@@ -10,8 +10,8 @@ Releases are managed with Changesets and
 3. Until trusted publishing is configured, add an automation token as the
    `NPM_TOKEN` repository secret.
 4. Protect `main` and require the CI and CodeQL checks.
-5. Restrict modifications to release workflows and package metadata through
-   CODEOWNERS or branch protection.
+5. Restrict modifications to package metadata through CODEOWNERS or branch
+   protection.
 
 ## Preparing a change
 
@@ -25,16 +25,20 @@ Commit the generated `.changeset/*.md` file with the implementation.
 
 ## Publishing
 
-When changesets reach `main`, the release workflow opens or updates a release
-pull request. That pull request applies package versions and changelogs.
+On `main`, apply pending changesets and publish:
 
-Merging the release pull request runs the full production gate and publishes
-`grafyx` with npm provenance. The workflow also creates the corresponding
-Git tag and GitHub release through Changesets.
+```bash
+npm ci
+npm run version-packages
+npm run release
+```
+
+`npm run release` runs the production gate, then `changeset publish`, which
+publishes `grafyx` and creates the Git tag.
 
 ## Manual verification
 
-Before merging a release pull request:
+Before publishing:
 
 ```bash
 npm ci
@@ -49,6 +53,3 @@ all four entry points:
 - `grafyx/graph`
 - `grafyx/reactive`
 - `grafyx/advanced`
-
-Do not publish directly from a developer workstation except during an explicit
-release-recovery procedure.
