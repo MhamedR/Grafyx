@@ -14,6 +14,7 @@ export interface FakeHost extends AtlasHost {
   readonly editor: string[];
   readonly diagnostics: AtlasFileDiagnostic[][];
   cleared: number;
+  readonly structures: unknown[];
   nextPick: Array<string | undefined>;
   nextInput: Array<string | undefined>;
 }
@@ -29,6 +30,7 @@ export function fakeHost(): FakeHost {
     editor: [],
     diagnostics: [],
     cleared: 0,
+    structures: [],
     nextPick: [],
     nextInput: [],
     registerCommand(id) {
@@ -67,6 +69,9 @@ export function fakeHost(): FakeHost {
       host.cleared += 1;
     },
     revealOutput() {},
+    setStructure(snapshot) {
+      host.structures.push(snapshot);
+    },
   };
   return host;
 }

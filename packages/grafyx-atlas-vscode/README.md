@@ -169,7 +169,7 @@ Click `app` in the breadcrumb to climb back to the folder map. A folder with not
 
 ![The export menu: Draw.io, PDF, JPEG](https://raw.githubusercontent.com/MhamedR/Grafyx/main/packages/atlas/docs/export.png)
 
-**export** sits at the top right of the map, beside the zoom controls. It saves the picture on screen: the lens you have open, the selected node, any name you have typed to dim the rest, and any node you have dragged.
+**export** sits at the top right of the map. Zoom, search, and focus sit on the graph. Export saves the picture on screen: the lens you have open, the selected node, any name you have typed to dim the rest, and any node you have dragged.
 
 | Format      | What you get                                                                        |
 | ----------- | ----------------------------------------------------------------------------------- |
@@ -193,25 +193,29 @@ The file name is the last folder of the project root and the lens: `<project>-<l
 | **Grafyx Atlas: Go Deeper**           | Opens the folder under the cursor                                     |
 | **Grafyx Atlas: Refresh Diagnostics** | Scans again and republishes cycle warnings                            |
 | **Grafyx Atlas: Run Command**         | The map's command box: `<part> <lens>`, for example `services impact` |
+| **Grafyx Atlas: Reveal Active File**  | Opens the map on the part that contains the active editor             |
 
-Open Map, Show Impact, Show Upstream, and Go Deeper are on the Explorer context menu. Show Impact and Show Upstream are on the editor context menu.
+The Architecture view on the activity bar lists the parts from the latest scan. Open Map fills it. Click a part to reveal it. While the map is open, switching files selects that part, centers it, and shows what it depends on and what requires it. `grafyxAtlas.followActiveEditor` turns that off. **Open source** and **Reveal** in the inspector jump back to the file.
 
-Inside the map, the same command box accepts either word first. A part name can be partial as long as it matches only one node. Arrow keys step along edges; Shift and the arrow keys step the other way. Escape clears the filter and the selection.
+Open Map, Show Impact, Show Upstream, Go Deeper, and Reveal Active File are on the Explorer context menu. Show Impact, Show Upstream, and Reveal Active File are on the editor context menu. Reveal Active File is also on the editor title bar.
 
-The header path copies when you click it. **−**, the scale, and **+** zoom the picture; click the percentage to fit it again, and use the wheel to zoom toward the pointer. Drag the empty field to pan once the picture is larger than the frame. Drag the top of the filmstrip to resize it, or use **hide** and **order** on its right edge. The [grafyx-atlas readme](https://github.com/MhamedR/Grafyx/blob/main/packages/atlas/README.md#controls) has the full control table.
+Inside the map, **⌘K** / **Ctrl K** searches. The filter field dims non-matches and says how many nodes are showing. Arrow keys step along edges; Shift and the arrow keys step the other way. Escape clears the filter, the focus, and the selection. The command box still accepts either word first.
+
+The header path copies when you click it. Zoom sits on the graph; click the percentage to fit it again, and use the wheel to zoom toward the pointer. Drag the empty field to pan once the picture is larger than the frame. The [grafyx-atlas readme](https://github.com/MhamedR/Grafyx/blob/main/packages/atlas/README.md#controls) has the full control table.
 
 The text of each command is also written to the **Grafyx Atlas** output channel.
 
 ## Settings
 
-Settings follow the CLI. They do not add a second scan.
+Settings follow the CLI. Following the active editor does not scan again; the open map already has the graph.
 
-| Setting                   | CLI                                            | Default          |
-| ------------------------- | ---------------------------------------------- | ---------------- |
-| `grafyxAtlas.root`        | `--root`                                       | workspace folder |
-| `grafyxAtlas.port`        | an edited value, otherwise `PORT`, then `4328` | `4328`           |
-| `grafyxAtlas.openIn`      | editor tab, system browser, or `--no-open`     | `editor`         |
-| `grafyxAtlas.diagnostics` | cycle warnings from the same `cycles` call     | `true`           |
+| Setting                          | CLI                                                 | Default          |
+| -------------------------------- | --------------------------------------------------- | ---------------- |
+| `grafyxAtlas.root`               | `--root`                                            | workspace folder |
+| `grafyxAtlas.port`               | an edited value, otherwise `PORT`, then `4328`      | `4328`           |
+| `grafyxAtlas.openIn`             | editor tab, system browser, or `--no-open`          | `editor`         |
+| `grafyxAtlas.diagnostics`        | cycle warnings from the same `cycles` call          | `true`           |
+| `grafyxAtlas.followActiveEditor` | select the active file's node while the map is open | `true`           |
 
 `grafyxAtlas.root` empty uses the workspace folder that contains the file you invoked the command on. One open folder is used when there is no file. Several folders ask you to pick. A relative value resolves from that folder. An absolute value is used as written. The process working directory is not used.
 

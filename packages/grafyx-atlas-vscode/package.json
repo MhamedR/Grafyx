@@ -2,7 +2,7 @@
   "name": "grafyx-atlas-vscode",
   "displayName": "Grafyx Atlas",
   "description": "Open the grafyx/atlas map of a project from VS Code.",
-  "version": "1.1.0",
+  "version": "2.0.0",
   "private": true,
   "publisher": "grafyx",
   "icon": "icon.png",
@@ -37,59 +37,90 @@
     "onCommand:grafyxAtlas.showStats",
     "onCommand:grafyxAtlas.goDeeper",
     "onCommand:grafyxAtlas.refreshDiagnostics",
-    "onCommand:grafyxAtlas.runCommand"
+    "onCommand:grafyxAtlas.runCommand",
+    "onCommand:grafyxAtlas.revealFile",
+    "onView:grafyxAtlas.explorer"
   ],
   "contributes": {
     "commands": [
       {
         "command": "grafyxAtlas.openMap",
         "title": "Grafyx Atlas: Open Map",
-        "category": "Grafyx Atlas"
+        "icon": "$(type-hierarchy)"
       },
       {
         "command": "grafyxAtlas.stopMap",
         "title": "Grafyx Atlas: Stop Map",
-        "category": "Grafyx Atlas"
+        "icon": "$(debug-stop)"
       },
       {
         "command": "grafyxAtlas.showImpact",
         "title": "Grafyx Atlas: Show Impact",
-        "category": "Grafyx Atlas"
+        "icon": "$(references)"
       },
       {
         "command": "grafyxAtlas.showUpstream",
         "title": "Grafyx Atlas: Show Upstream",
-        "category": "Grafyx Atlas"
+        "icon": "$(references)"
       },
       {
         "command": "grafyxAtlas.showCycles",
         "title": "Grafyx Atlas: Show Cycles",
-        "category": "Grafyx Atlas"
+        "icon": "$(sync)"
       },
       {
         "command": "grafyxAtlas.showOrder",
         "title": "Grafyx Atlas: Show Build Order",
-        "category": "Grafyx Atlas"
+        "icon": "$(list-ordered)"
       },
       {
         "command": "grafyxAtlas.showStats",
         "title": "Grafyx Atlas: Show Stats",
-        "category": "Grafyx Atlas"
+        "icon": "$(graph)"
       },
       {
         "command": "grafyxAtlas.goDeeper",
         "title": "Grafyx Atlas: Go Deeper",
-        "category": "Grafyx Atlas"
+        "icon": "$(folder-opened)"
       },
       {
         "command": "grafyxAtlas.refreshDiagnostics",
         "title": "Grafyx Atlas: Refresh Diagnostics",
-        "category": "Grafyx Atlas"
+        "icon": "$(refresh)"
       },
       {
         "command": "grafyxAtlas.runCommand",
         "title": "Grafyx Atlas: Run Command",
-        "category": "Grafyx Atlas"
+        "icon": "$(terminal)"
+      },
+      {
+        "command": "grafyxAtlas.revealFile",
+        "title": "Grafyx Atlas: Reveal Active File",
+        "icon": "$(target)"
+      }
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "grafyx-atlas",
+          "title": "Grafyx Atlas",
+          "icon": "media/activity.svg"
+        }
+      ]
+    },
+    "views": {
+      "grafyx-atlas": [
+        {
+          "id": "grafyxAtlas.explorer",
+          "name": "Architecture",
+          "contextualTitle": "Grafyx Atlas"
+        }
+      ]
+    },
+    "viewsWelcome": [
+      {
+        "view": "grafyxAtlas.explorer",
+        "contents": "Atlas has not indexed this workspace yet.\n[Open Map](command:grafyxAtlas.openMap)\n[Refresh diagnostics](command:grafyxAtlas.refreshDiagnostics)"
       }
     ],
     "menus": {
@@ -113,6 +144,11 @@
           "command": "grafyxAtlas.goDeeper",
           "group": "grafyx@4",
           "when": "resourceScheme == file"
+        },
+        {
+          "command": "grafyxAtlas.revealFile",
+          "group": "grafyx@5",
+          "when": "resourceScheme == file"
         }
       ],
       "editor/context": [
@@ -125,6 +161,30 @@
           "command": "grafyxAtlas.showUpstream",
           "group": "grafyx@2",
           "when": "resourceScheme == file"
+        },
+        {
+          "command": "grafyxAtlas.revealFile",
+          "group": "grafyx@3",
+          "when": "resourceScheme == file"
+        }
+      ],
+      "editor/title": [
+        {
+          "command": "grafyxAtlas.revealFile",
+          "group": "navigation@25",
+          "when": "resourceScheme == file"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "grafyxAtlas.showImpact",
+          "when": "view == grafyxAtlas.explorer && viewItem == atlasPart",
+          "group": "inline"
+        },
+        {
+          "command": "grafyxAtlas.showUpstream",
+          "when": "view == grafyxAtlas.explorer && viewItem == atlasPart",
+          "group": "inline"
         }
       ]
     },
@@ -157,6 +217,11 @@
           "type": "boolean",
           "default": true,
           "description": "Publish import-cycle warnings from the atlas scan. Cycles come from grafyx-atlas. Warnings update when an atlas command scans the project."
+        },
+        "grafyxAtlas.followActiveEditor": {
+          "type": "boolean",
+          "default": true,
+          "description": "When the map is open, select the graph node for the active editor. Turn this off to explore the map without it following the file you switch to."
         }
       }
     }
@@ -172,7 +237,7 @@
     "test": "node --import tsx --test --test-concurrency=1 test/*.test.ts"
   },
   "dependencies": {
-    "grafyx-atlas": "1.2.0"
+    "grafyx-atlas": "2.0.0"
   },
   "devDependencies": {
     "@types/node": "^26.6.2",

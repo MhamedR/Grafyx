@@ -18,6 +18,7 @@ export {
   isLens,
   formatBytes,
   nodeBytes,
+  nodeShape,
   type AtlasBoot,
   type AtlasEdge,
   type AtlasSnapshot,
@@ -78,3 +79,20 @@ export {
   type AtlasSession,
   type Emphasis,
 } from './session.js';
+
+export {
+  FOCUS_LABEL,
+  FOCUS_MODES,
+  directRelations,
+  locateByPath,
+  matchesQuery,
+  presentEdge,
+  presentNode,
+  searchNodes,
+  visibleIds,
+  type DirectRelations,
+  type EdgeFlow,
+  type FocusMode,
+  type NodeRole,
+  type SearchHit,
+} from './explore.js';

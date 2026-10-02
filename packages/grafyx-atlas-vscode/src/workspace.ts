@@ -137,6 +137,10 @@ export function relativeToRoot(root: string, filePath: string): string | undefin
 export function filePathFromCommandArgument(argument: unknown): string | undefined {
   if (!argument || typeof argument !== 'object') return undefined;
 
+  if ('resourceUri' in argument && argument.resourceUri) {
+    return filePathFromCommandArgument(argument.resourceUri);
+  }
+
   if ('scheme' in argument && 'fsPath' in argument) {
     const uri = argument as {scheme?: unknown; fsPath?: unknown};
     if (uri.scheme === 'file' && typeof uri.fsPath === 'string') return uri.fsPath;

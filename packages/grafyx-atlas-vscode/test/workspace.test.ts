@@ -181,6 +181,12 @@ test('command arguments accept an explorer URI or a text editor', () => {
     'untitled has no path',
   );
   assert(filePathFromCommandArgument('services') === undefined, 'a string is not a resource');
+  assert(
+    filePathFromCommandArgument({
+      resourceUri: {scheme: 'file', fsPath: '/repo/packages/atlas'},
+    }) === '/repo/packages/atlas',
+    'a tree item reveals through its resource URI',
+  );
 });
 
 test('findProjectRoot stops at the nearest package.json', async () => {

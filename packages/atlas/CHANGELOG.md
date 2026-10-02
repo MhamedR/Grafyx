@@ -1,5 +1,11 @@
 # grafyx-atlas
 
+## 2.0.0
+
+### Major Changes
+
+- Make the map explorable. Selecting a node shows its dependencies and dependents and quiets the rest. Search, filter, and focus narrow a large graph, and the VS Code host follows the active file and opens the matching source.
+
 ## 1.2.0
 
 ### Minor Changes

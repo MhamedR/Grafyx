@@ -47,10 +47,10 @@ A dependency list tells you what imports what. It does not tell you what order t
 - **Go deeper.** Right-click a folder to see the files inside it and the files one import away.
 - **Inspect anything.** Hover a node and, after a short pause, a tooltip lists its files and edges. Click it to pin those details in the rail. A folder with more than 24 files shows the count instead of every name.
 - **The path.** Beside the wordmark. It follows the selected part, shortens in the middle when it is long, and copies to the clipboard when you click it.
-- **Zoom.** **−**, the current scale, and **+** sit in the header, next to export. Click the percentage to fit the picture again. The wheel zooms toward the pointer.
+- **Zoom.** **−**, the current scale, and **+** sit on the graph, with **Search**, focus, and captions. Click the percentage to fit the picture again. The wheel zooms toward the pointer.
 - **The order strip.** The same schedule as the ranks. Drag its top edge to resize it, or hide it from the handle on the right.
 - **Export** the current picture to Draw.io (editable), PDF, or JPEG.
-- **Keyboard first.** A command box (`services impact`), type-to-filter, and arrow-key navigation along edges.
+- **Keyboard first.** **⌘K** / **Ctrl K** searches. A filter field narrows the graph. Arrow keys walk edges. **?** lists the shortcuts.
 - **Library API.** The extractors and graph algorithms behind the UI are exported from `grafyx-atlas`.
 - **MCP.** Agents can query the same map over the Model Context Protocol.
 
@@ -203,7 +203,7 @@ Click `app` in the breadcrumb to climb back to the folder map. When you have gon
 
 ![The export menu: Draw.io, PDF, JPEG](https://raw.githubusercontent.com/MhamedR/Grafyx/main/packages/atlas/docs/export.png)
 
-**export** sits at the top right, beside the zoom controls. It saves the picture on screen: the lens you have open, the selected node, any name you have typed to dim the rest, and any node you have dragged. Choose a format from the menu and the browser downloads the file.
+**export** sits at the top right. It saves the picture on screen: the lens you have open, the selected node, the filter, and any node you have dragged. Choose a format from the menu and the browser downloads the file.
 
 | Format      | What you get                                                                                                                                                                                                       |
 | ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
@@ -228,17 +228,20 @@ Export is a browser feature of the map. The library API does not expose it.
 | Click the path beside the wordmark       | Copy the full path                                                                                      |
 | Hover a node                             | After a short pause, a tooltip with rank, path, files, and edges                                        |
 | Drag a node                              | Move it; the arrows follow                                                                              |
-| **−** / **+**                            | Zoom out or in, from 50% to 275% of the fitted picture                                                  |
-| Click the zoom percentage                | Reset zoom and pan                                                                                      |
+| **Search**, or **⌘K** / **Ctrl K**       | Find a node by name, path, or file, then center and select it                                           |
+| Filter field                             | Dim nodes that do not match. **Clear** restores the count                                               |
+| Focus menu                               | Full graph, one hop, two hops, dependencies, or dependents                                              |
+| **−** / **+**, or **+** / **−** keys     | Zoom out or in, from 50% to 400% of the fitted picture                                                  |
+| Click the zoom percentage, or **F**      | Fit the graph                                                                                           |
 | Wheel                                    | Zoom toward the pointer                                                                                 |
 | Drag the empty field                     | Pan, once the picture is larger than the frame                                                          |
 | Drag the top edge of the filmstrip       | Resize it                                                                                               |
 | **hide** / **order**                     | Collapse the filmstrip, or open it again                                                                |
 | Right-click a folder                     | **Go deeper**                                                                                           |
-| Type letters (command box not focused)   | Dim every node whose name and files do not match; Backspace deletes                                     |
 | Arrow keys                               | Step the selection to a part it comes before; with nothing selected, select the first part in the order |
 | Shift + arrow keys                       | Step the selection to a part it stands on                                                               |
-| Escape                                   | Close an open menu, otherwise clear the filter and the selection                                        |
+| **?**                                    | Keyboard shortcut list                                                                                  |
+| Escape                                   | Close search or a menu, otherwise clear the filter, the focus, and the selection                        |
 | Command box: `<part> <lens>`, then Enter | Select and switch lens in one go, for example `services impact` or `routes upstream`                    |
 
 In the command box, either word can come first and both are optional. A part name can be partial as long as it matches only one node.
@@ -379,6 +382,7 @@ On a project with a loop, `order` returns `{kind: 'cycle', components}` with the
 | `structureStats(snapshot)`                                                                        | Largest files, weight by part, change reach, coupling, and the scan cost.                               |
 | `layoutSnapshot(snapshot, viewport)`, `applyOffsets`                                              | Rank layout and dragged offsets, as used by the UI.                                                     |
 | `createAtlasSession`, `connectAtlasSession`, `parseCommand`                                       | The reactive session the UI renders, its React stores, and the command box parser.                      |
+| `searchNodes`, `visibleIds`, `directRelations`, `locateByPath`                                    | Search, focus neighborhoods, direct dependencies, and the node for a file path.                         |
 | `startAtlasServer({root, port})` from `grafyx-atlas/server`                                       | Bind the local map on `127.0.0.1`. Importing the entry does not listen, and it does not open a browser. |
 | `createAtlasMcpTools`, `toMcpTools`, `callMcpTool`, `startAtlasMcpServer` from `grafyx-atlas/mcp` | Read-only MCP tools and the stdio server. Importing the entry does not listen.                          |
 

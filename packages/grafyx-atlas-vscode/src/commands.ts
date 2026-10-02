@@ -16,6 +16,7 @@ export const ATLAS_COMMANDS = [
   {id: 'grafyxAtlas.goDeeper', title: 'Grafyx Atlas: Go Deeper'},
   {id: 'grafyxAtlas.refreshDiagnostics', title: 'Grafyx Atlas: Refresh Diagnostics'},
   {id: 'grafyxAtlas.runCommand', title: 'Grafyx Atlas: Run Command'},
+  {id: 'grafyxAtlas.revealFile', title: 'Grafyx Atlas: Reveal Active File'},
 ] as const satisfies readonly AtlasCommand[];
 
 export type AtlasCommandId = (typeof ATLAS_COMMANDS)[number]['id'];

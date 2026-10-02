@@ -42,13 +42,34 @@ import {
   type Emphasis,
 } from '../session.js';
 import {buildExportPicture, exportFilename} from '../export.js';
+import {
+  directRelations,
+  FOCUS_LABEL,
+  FOCUS_MODES,
+  locateByPath,
+  matchesQuery,
+  presentEdge,
+  presentNode,
+  roleLabel,
+  visibleIds,
+  type FocusMode,
+  type NodeRole,
+} from '../explore.js';
 import {connectionCurve} from './curves.js';
+import {Minimap, SearchPalette, ShortcutHelp} from './chrome.js';
+import {
+  applyHostTheme,
+  atlasEmbedded,
+  followSystemTheme,
+  listenToHost,
+  postToHost,
+} from './host-bridge.js';
 import {savePicture} from './paint.js';
 import {StatsBoard} from './stats.js';
 
 const EASE = 'cubic-bezier(0.2, 0.8, 0.2, 1)';
 const ZOOM_MIN = 0.5;
-const ZOOM_MAX = 2.75;
+const ZOOM_MAX = 4;
 const ZOOM_STEP = 1.25;
 const ORDER_MIN_HEIGHT = 96;
 const ORDER_MAX_HEIGHT = 520;
@@ -133,6 +154,38 @@ function clampOrderHeight(height: number, viewportHeight: number): number {
 
 function viewAtRest(view: PictureView): boolean {
   return Math.abs(view.zoom - 1) < 0.01 && view.panX === 0 && view.panY === 0;
+}
+
+function centerOnNode(layout: AtlasLayout, node: PlacedNode, zoom: number): PictureView {
+  const scale = viewScale(layout, zoom);
+  const marginTop = Math.max(0, (layout.frameHeight - layout.height * scale) / 2);
+  const panX = layout.frameWidth / 2 - (node.x + node.width / 2) * scale;
+  const panY = layout.frameHeight / 2 - marginTop - (node.y + node.height / 2) * scale;
+  return {zoom, ...clampPan(layout, scale, panX, panY)};
+}
+
+function centerOnPoint(layout: AtlasLayout, zoom: number, x: number, y: number): PictureView {
+  const scale = viewScale(layout, zoom);
+  const marginTop = Math.max(0, (layout.frameHeight - layout.height * scale) / 2);
+  return {
+    zoom,
+    ...clampPan(
+      layout,
+      scale,
+      layout.frameWidth / 2 - x * scale,
+      layout.frameHeight / 2 - marginTop - y * scale,
+    ),
+  };
+}
+
+function revealPlacement(layout: AtlasLayout, node: PlacedNode, currentZoom: number): PictureView {
+  return centerOnNode(layout, node, clampZoom(Math.max(currentZoom, 1.65)));
+}
+
+function detailFor(scale: number): 'far' | 'mid' | 'near' {
+  if (scale < 0.62) return 'far';
+  if (scale < 1.05) return 'mid';
+  return 'near';
 }
 
 /** Project root, then the open depth, then the selected part. */
@@ -345,12 +398,19 @@ function Picture({
   const [orderOpen, setOrderOpen] = useState(true);
   const [orderHeight, setOrderHeight] = useState<number | null>(null);
   const [tipId, setTipId] = useState<string | null>(null);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [helpOpen, setHelpOpen] = useState(false);
+  const [focusMode, setFocusMode] = useState<FocusMode>('full');
+  const [focusMenu, setFocusMenu] = useState(false);
+  const [captions, setCaptions] = useState(true);
+  const [embedded] = useState(atlasEmbedded);
   const crumbs = useStore(stores.crumbs);
   const boardRef = useRef(board);
   const layoutRef = useRef(layout);
   const cameraRef = useRef(camera);
   const moveTimer = useRef<number | null>(null);
   const panDrag = useRef<{pointer: number; x: number; y: number; moved: boolean} | null>(null);
+  const pendingReveal = useRef<string | null>(null);
   boardRef.current = board;
   layoutRef.current = layout;
   cameraRef.current = camera;
@@ -386,13 +446,37 @@ function Picture({
     return () => observer.disconnect();
   }, [session]);
 
+  const zoomAtCenter = (factor: number): void => {
+    const stage = stageRef.current;
+    const currentLayout = layoutRef.current;
+    if (!stage || !currentLayout) return;
+    const rect = stage.getBoundingClientRect();
+    setPictureMoving(false);
+    setCamera((current) =>
+      applyZoom(currentLayout, current, factor, rect.width / 2, rect.height / 2),
+    );
+  };
+
   useEffect(() => {
     const onKey = (event: KeyboardEvent): void => {
       const target = event.target;
       const typing = target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement;
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') {
+        event.preventDefault();
+        setHelpOpen(false);
+        setFocusMenu(false);
+        setSearchOpen(true);
+        return;
+      }
+
       if (event.key === 'Escape') {
+        if (searchOpen || helpOpen) return;
         if (exportOpen) {
           setExportOpen(false);
+          return;
+        }
+        if (focusMenu) {
+          setFocusMenu(false);
           return;
         }
         if (menu) {
@@ -403,11 +487,12 @@ function Picture({
           session.query.value = '';
           session.selectedId.value = null;
         });
+        setFocusMode('full');
         setCommand('');
         return;
       }
 
-      if (typing) return;
+      if (typing || searchOpen || helpOpen) return;
 
       if (
         event.key === 'ArrowRight' ||
@@ -422,20 +507,36 @@ function Picture({
 
       if (event.metaKey || event.ctrlKey || event.altKey) return;
 
-      if (event.key === 'Backspace') {
+      if (event.key === 'f' || event.key === 'F' || event.key === '0') {
         event.preventDefault();
-        session.setQuery(session.query.value.slice(0, -1));
+        setPictureMoving(false);
+        setCamera({zoom: 1, panX: 0, panY: 0});
         return;
       }
 
-      if (event.key.length === 1) {
-        session.setQuery(session.query.value + event.key);
+      if (event.key === '+' || event.key === '=') {
+        event.preventDefault();
+        zoomAtCenter(ZOOM_STEP);
+        return;
+      }
+
+      if (event.key === '-' || event.key === '_') {
+        event.preventDefault();
+        zoomAtCenter(1 / ZOOM_STEP);
+        return;
+      }
+
+      if (event.key === '?') {
+        event.preventDefault();
+        setSearchOpen(false);
+        setFocusMenu(false);
+        setHelpOpen(true);
       }
     };
 
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [exportOpen, menu, session]);
+  }, [exportOpen, focusMenu, helpOpen, menu, searchOpen, session]);
 
   useEffect(() => {
     if (!layout) return;
@@ -490,6 +591,106 @@ function Picture({
     };
   }, []);
 
+  const presentation = useMemo(() => {
+    const roles = new Map<string, NodeRole>();
+    const flows = new Map<string, ReturnType<typeof presentEdge>>();
+    if (!snapshot) return {roles, flows, shown: 0, total: 0};
+
+    const relations = selectedId
+      ? directRelations(snapshot.edges, selectedId)
+      : directRelations([], '');
+    const dependencies = new Set(relations.dependencies);
+    const dependents = new Set(relations.dependents);
+    const dependencyEdges = new Set(relations.dependencyEdges);
+    const dependentEdges = new Set(relations.dependentEdges);
+    const emphasized = new Set(emphasis.nodes);
+    const emphasizedEdges = new Set(emphasis.edges);
+    const visible = visibleIds(snapshot, selectedId, focusMode);
+    const lensScopes = lens === 'impact' || lens === 'upstream' || lens === 'cycles';
+    const hasSelection = selectedId !== null;
+    const filterText = query.trim().toLowerCase();
+    let shown = 0;
+
+    for (const node of snapshot.nodes) {
+      const filtered = filterText.length > 0 && !matchesQuery(node, filterText);
+      const hidden = visible !== null && !visible.has(node.id);
+      const role = presentNode({
+        selected: node.id === selectedId,
+        dependency: dependencies.has(node.id),
+        dependent: dependents.has(node.id),
+        emphasized: emphasized.has(node.id),
+        lensScopes,
+        filtered,
+        hidden,
+        hasSelection,
+      });
+      roles.set(node.id, role);
+      if (role !== 'hidden' && role !== 'filtered') shown += 1;
+    }
+
+    for (const edge of snapshot.edges) {
+      const hidden = visible !== null && (!visible.has(edge.from) || !visible.has(edge.to));
+      flows.set(
+        edge.id,
+        presentEdge({
+          dependency: dependencyEdges.has(edge.id),
+          dependent: dependentEdges.has(edge.id),
+          emphasized: emphasizedEdges.has(edge.id),
+          lensScopes,
+          hasSelection,
+          orderLens: lens === 'order',
+          hidden,
+        }),
+      );
+    }
+
+    return {roles, flows, shown, total: snapshot.nodes.length};
+  }, [emphasis, focusMode, lens, query, selectedId, snapshot]);
+
+  const [revealTick, setRevealTick] = useState(0);
+
+  useEffect(() => {
+    postToHost({type: 'ready'});
+    return followSystemTheme();
+  }, []);
+
+  useEffect(() => {
+    return listenToHost((message) => {
+      if (message.type === 'theme') {
+        applyHostTheme(message);
+        if (message.reducedMotion) session.setReducedMotion(true);
+        return;
+      }
+      const current = session.snapshot.value;
+      if (!current) return;
+      const node = locateByPath(current, message.path);
+      if (!node) return;
+      pendingReveal.current = node.id;
+      session.select(node.id);
+      setRevealTick((tick) => tick + 1);
+    });
+  }, [session]);
+
+  useEffect(() => {
+    const id = pendingReveal.current;
+    if (!id || !layout || id !== selectedId) return;
+    const node = layout.nodes.find((item) => item.id === id);
+    pendingReveal.current = null;
+    if (!node) return;
+    setPictureMoving(false);
+    setCamera((current) => revealPlacement(layout, node, current.zoom));
+  }, [layout, revealTick, selectedId]);
+
+  useEffect(() => {
+    const node = snapshot?.nodes.find((item) => item.id === selectedId) ?? null;
+    postToHost({
+      type: 'selection',
+      id: node?.id ?? '',
+      path: node?.path ?? '',
+      root: boot.root,
+    });
+  }, [boot.root, selectedId, snapshot]);
+
   const buildOrder = useStore(stores.order);
   const selected = snapshot?.nodes.find((node) => node.id === selectedId) ?? null;
   const tipNode = snapshot?.nodes.find((node) => node.id === tipId) ?? null;
@@ -517,7 +718,7 @@ function Picture({
     const target = event.target;
     if (
       !(target instanceof Element) ||
-      target.closest('.node, .zoom, .stats, .field-message, button, a, input')
+      target.closest('.node, .zoom, .stats, .field-message, .toolbar, .minimap, button, a, input')
     ) {
       return;
     }
@@ -610,41 +811,6 @@ function Picture({
             <LocationPath location={location} />
           </div>
           <div className="header-tools">
-            {showZoom ? (
-              <div className="zoom" role="group" aria-label="Zoom">
-                <button
-                  type="button"
-                  aria-label="Zoom out"
-                  title="Zoom out"
-                  disabled={camera.zoom <= ZOOM_MIN + 0.001}
-                  onClick={() => zoomBy(1 / ZOOM_STEP)}
-                >
-                  −
-                </button>
-                <button
-                  type="button"
-                  className="zoom-level"
-                  aria-label={`Reset zoom, ${zoomPercent}%`}
-                  title="Reset zoom"
-                  disabled={viewAtRest(camera)}
-                  onClick={() => {
-                    setPictureMoving(false);
-                    setCamera({zoom: 1, panX: 0, panY: 0});
-                  }}
-                >
-                  {zoomPercent}%
-                </button>
-                <button
-                  type="button"
-                  aria-label="Zoom in"
-                  title="Zoom in"
-                  disabled={camera.zoom >= ZOOM_MAX - 0.001}
-                  onClick={() => zoomBy(ZOOM_STEP)}
-                >
-                  +
-                </button>
-              </div>
-            ) : null}
             <div className="export">
               <button
                 type="button"
@@ -763,13 +929,54 @@ function Picture({
           <p className="question" data-question>
             {question}
           </p>
-          {filter.length > 0 ? (
-            <p className="filter-note" data-query>
-              {query}
-            </p>
-          ) : null}
+          <label className="filter-field">
+            <span>Filter</span>
+            <input
+              aria-label="Filter nodes"
+              placeholder="Name, path, or file"
+              value={query}
+              onChange={(event) => session.setQuery(event.target.value)}
+            />
+          </label>
+          <p className="filter-status" data-query={filter.length > 0 ? filter : undefined}>
+            <span>
+              Showing {presentation.shown.toLocaleString()} of {presentation.total.toLocaleString()}
+              {focusMode !== 'full' ? ` · ${FOCUS_LABEL[focusMode].toLowerCase()}` : ''}
+            </span>
+            {filter.length > 0 || focusMode !== 'full' ? (
+              <button
+                type="button"
+                onClick={() => {
+                  session.setQuery('');
+                  setFocusMode('full');
+                }}
+              >
+                Clear
+              </button>
+            ) : null}
+          </p>
         </div>
-        {selected && snapshot ? <Inspector snapshot={snapshot} node={selected} /> : null}
+        {selected && snapshot ? (
+          <Inspector
+            snapshot={snapshot}
+            node={selected}
+            embedded={embedded}
+            onDependencies={() => {
+              session.setLens('upstream');
+              setFocusMode('dependencies');
+            }}
+            onDependents={() => {
+              session.setLens('impact');
+              setFocusMode('dependents');
+            }}
+            onFocus={() => {
+              session.setLens('map');
+              setFocusMode('one');
+            }}
+            onOpen={() => postToHost({type: 'open', root: boot.root, path: selected.path})}
+            onReveal={() => postToHost({type: 'reveal', root: boot.root, path: selected.path})}
+          />
+        ) : null}
       </aside>
       <main
         className="stage"
@@ -784,6 +991,7 @@ function Picture({
           }
           setMenu(null);
           setExportOpen(false);
+          setFocusMenu(false);
           session.select(null);
         }}
         onPointerDown={onStagePointerDown}
@@ -791,18 +999,134 @@ function Picture({
         onPointerUp={onStagePointerUp}
         onPointerCancel={onStagePointerUp}
       >
+        {showZoom ? (
+          <div
+            className="toolbar"
+            role="toolbar"
+            aria-label="Graph controls"
+            onClick={(event) => event.stopPropagation()}
+            onPointerDown={(event) => event.stopPropagation()}
+          >
+            <button
+              type="button"
+              aria-label="Search"
+              aria-keyshortcuts="Control+K Meta+K"
+              title="Search (⌘K)"
+              onClick={() => {
+                setHelpOpen(false);
+                setFocusMenu(false);
+                setSearchOpen(true);
+              }}
+            >
+              Search
+            </button>
+            <div className="zoom" role="group" aria-label="Zoom">
+              <button
+                type="button"
+                aria-label="Zoom out"
+                title="Zoom out"
+                disabled={camera.zoom <= ZOOM_MIN + 0.001}
+                onClick={() => zoomBy(1 / ZOOM_STEP)}
+              >
+                −
+              </button>
+              <button
+                type="button"
+                className="zoom-level"
+                aria-label={`Fit graph, ${zoomPercent}%`}
+                title="Fit graph"
+                disabled={viewAtRest(camera)}
+                onClick={() => {
+                  setPictureMoving(false);
+                  setCamera({zoom: 1, panX: 0, panY: 0});
+                }}
+              >
+                {zoomPercent}%
+              </button>
+              <button
+                type="button"
+                aria-label="Zoom in"
+                title="Zoom in"
+                disabled={camera.zoom >= ZOOM_MAX - 0.001}
+                onClick={() => zoomBy(ZOOM_STEP)}
+              >
+                +
+              </button>
+            </div>
+            <div style={{position: 'relative'}}>
+              <button
+                type="button"
+                aria-haspopup="menu"
+                aria-expanded={focusMenu}
+                data-open={focusMenu ? 'true' : 'false'}
+                title="Focus"
+                onClick={() => setFocusMenu((open) => !open)}
+              >
+                {FOCUS_LABEL[focusMode]}
+              </button>
+              {focusMenu ? (
+                <div className="tool-pop" role="menu">
+                  {FOCUS_MODES.map((mode) => (
+                    <button
+                      key={mode}
+                      type="button"
+                      role="menuitemradio"
+                      aria-checked={focusMode === mode}
+                      data-active={focusMode === mode ? 'true' : 'false'}
+                      onClick={() => {
+                        setFocusMode(mode);
+                        setFocusMenu(false);
+                      }}
+                    >
+                      {FOCUS_LABEL[mode]}
+                    </button>
+                  ))}
+                </div>
+              ) : null}
+            </div>
+            <button
+              type="button"
+              aria-pressed={captions}
+              title="Captions"
+              onClick={() => setCaptions((value) => !value)}
+            >
+              Captions
+            </button>
+            <button
+              type="button"
+              aria-label="Keyboard shortcuts"
+              title="Keyboard shortcuts"
+              onClick={() => {
+                setSearchOpen(false);
+                setFocusMenu(false);
+                setHelpOpen(true);
+              }}
+            >
+              ?
+            </button>
+          </div>
+        ) : null}
         {boot.error ? (
-          <div className="field-message" data-state="error">
+          <div className="field-message" data-state="error" role="alert">
+            <p className="field-title">Could not read this project</p>
             <p>{boot.error}</p>
-            <p>{boot.root}</p>
+            <p className="field-hint">
+              Check the root, then start the map again. Atlas scanned the path below.
+            </p>
+            <p className="field-path">{boot.root}</p>
           </div>
         ) : snapshot === null ? (
-          <div className="field-message" data-state="loading">
+          <div className="field-message" data-state="loading" role="status">
+            <p className="field-title">Reading the workspace</p>
             <p>{READING_LINE}</p>
           </div>
         ) : snapshot.nodes.length === 0 ? (
           <div className="field-message" data-state="empty">
+            <p className="field-title">Nothing to map</p>
             <p>{EMPTY_LINE}</p>
+            <p className="field-hint">
+              Atlas looks for workspace packages, or a source tree under this root.
+            </p>
           </div>
         ) : board === 'stats' && snapshot ? (
           <StatsBoard snapshot={snapshot} onSelect={(id) => session.select(id)} />
@@ -818,16 +1142,17 @@ function Picture({
               snapshot={snapshot}
               layoutNodes={layout.nodes}
               layoutEdges={layout.edges}
-              ranks={layout.ranks}
               width={layout.width}
               height={layout.height}
               scale={scale}
               emphasis={emphasis}
+              roles={presentation.roles}
+              flows={presentation.flows}
+              captions={captions}
               selectedId={selectedId}
               hoveredId={hoveredId}
               describedId={tipId}
               draggingId={draggingId}
-              filter={filter}
               reducedMotion={reducedMotion}
               onHover={(id) => session.setHovered(id)}
               onSelect={(id) => session.select(id)}
@@ -841,6 +1166,19 @@ function Picture({
               }}
             />
           </Fitted>
+        ) : null}
+        {board === 'map' && layout && layout.nodes.length > 0 ? (
+          <Minimap
+            layout={layout}
+            scale={scale}
+            panX={camera.panX}
+            panY={camera.panY}
+            roles={presentation.roles}
+            onPanTo={(x, y) => {
+              setPictureMoving(false);
+              setCamera((current) => centerOnPoint(layout, current.zoom, x, y));
+            }}
+          />
         ) : null}
         {board === 'map' && tipNode && snapshot && draggingId === null && menu === null ? (
           <PackageTooltip
@@ -871,7 +1209,6 @@ function Picture({
             <ol className="filmstrip" id="order-panel">
               {layout?.ranks.map((rank) => (
                 <li key={rank.index} data-rank={rank.index}>
-                  <span className="rank-index">{rank.index}</span>
                   {rank.ids.map((id) => (
                     <button
                       key={id}
@@ -931,6 +1268,22 @@ function Picture({
           </button>
         </div>
       ) : null}
+      {searchOpen && snapshot ? (
+        <SearchPalette
+          nodes={snapshot.nodes}
+          onClose={() => setSearchOpen(false)}
+          onPick={(id) => {
+            pendingReveal.current = id;
+            session.select(id);
+            setRevealTick((tick) => tick + 1);
+            setBoard('map');
+          }}
+        />
+      ) : null}
+      {helpOpen ? <ShortcutHelp onClose={() => setHelpOpen(false)} /> : null}
+      <p className="sr-only" role="status">
+        Showing {presentation.shown.toLocaleString()} of {presentation.total.toLocaleString()} nodes
+      </p>
     </div>
   );
 }
@@ -1029,39 +1382,131 @@ function FolderFiles({
 function Inspector({
   snapshot,
   node,
+  embedded,
+  onDependencies,
+  onDependents,
+  onFocus,
+  onOpen,
+  onReveal,
 }: {
   readonly snapshot: AtlasSnapshot;
   readonly node: PackageNode;
+  readonly embedded: boolean;
+  readonly onDependencies: () => void;
+  readonly onDependents: () => void;
+  readonly onFocus: () => void;
+  readonly onOpen: () => void;
+  readonly onReveal: () => void;
 }) {
-  const incoming = new Set(
-    snapshot.edges.filter((edge) => edge.to === node.id).map((edge) => edge.from),
-  );
-  const outgoing = new Set(
-    snapshot.edges.filter((edge) => edge.from === node.id).map((edge) => edge.to),
-  );
-  const relations = snapshot.edges.filter((edge) => edge.from === node.id || edge.to === node.id);
+  const [copied, setCopied] = useState(false);
+  const relations = directRelations(snapshot.edges, node.id);
+  const incoming = snapshot.edges.filter((edge) => edge.to === node.id);
+  const outgoing = snapshot.edges.filter((edge) => edge.from === node.id);
   const shape = nodeShape(snapshot.kind, node);
+
+  useEffect(() => {
+    setCopied(false);
+  }, [node.id]);
+
+  useEffect(() => {
+    if (!copied) return;
+    const timer = window.setTimeout(() => setCopied(false), 1400);
+    return () => window.clearTimeout(timer);
+  }, [copied]);
 
   return (
     <section className="inspector" data-inspector>
       <p className="inspector-name">{node.id}</p>
       {shape ? <p className="inspector-kind">{shape}</p> : null}
+      <p className="legend">
+        <span>
+          <i data-swatch="dependency" />
+          depends on
+        </span>
+        <span>
+          <i data-swatch="dependent" />
+          required by
+        </span>
+      </p>
       {node.description.length > 0 ? <p>{node.description}</p> : null}
-      <p>{node.path}</p>
-      <FolderFiles node={node} shape={shape} variant="inspector" />
-      <div className="split">
-        <p className="split-label">
-          {incoming.size} in · {outgoing.size} out
-        </p>
-        <ul>
-          {relations.map((edge) => (
-            <li key={edge.id}>
-              {edge.from} → {edge.to} {edge.relation}
-            </li>
-          ))}
-        </ul>
+      <p className="inspector-path">{node.path}</p>
+      <div className="inspector-actions">
+        <button type="button" onClick={onDependencies}>
+          Dependencies
+        </button>
+        <button type="button" onClick={onDependents}>
+          Dependents
+        </button>
+        <button type="button" onClick={onFocus}>
+          Neighborhood
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            void copyText(node.id).then(
+              () => setCopied(true),
+              () => setCopied(false),
+            );
+          }}
+        >
+          {copied ? 'Copied' : 'Copy id'}
+        </button>
+        {embedded ? (
+          <button type="button" onClick={onOpen}>
+            Open source
+          </button>
+        ) : null}
+        {embedded ? (
+          <button type="button" onClick={onReveal}>
+            Reveal
+          </button>
+        ) : null}
       </div>
+      <FolderFiles node={node} shape={shape} variant="inspector" />
+      <RelationList
+        label={`${relations.dependencies.length} dependencies`}
+        empty="Nothing earlier in the order."
+        edges={incoming}
+        peer="from"
+      />
+      <RelationList
+        label={`${relations.dependents.length} dependents`}
+        empty="Nothing later in the order."
+        edges={outgoing}
+        peer="to"
+      />
     </section>
+  );
+}
+
+function RelationList({
+  label,
+  empty,
+  edges,
+  peer,
+}: {
+  readonly label: string;
+  readonly empty: string;
+  readonly edges: readonly AtlasSnapshot['edges'][number][];
+  readonly peer: 'from' | 'to';
+}) {
+  const shown = edges.slice(0, 8);
+  const rest = edges.length - shown.length;
+
+  return (
+    <div className="split">
+      <p className="split-label">{label}</p>
+      {shown.length === 0 ? <p>{empty}</p> : null}
+      <ul>
+        {shown.map((edge) => (
+          <li key={edge.id}>
+            {peer === 'from' ? edge.from : edge.to}
+            <span className="tooltip-relation">{edge.relation}</span>
+          </li>
+        ))}
+      </ul>
+      {rest > 0 ? <p>{rest} more</p> : null}
+    </div>
   );
 }
 
@@ -1172,16 +1617,17 @@ function Graph({
   snapshot,
   layoutNodes,
   layoutEdges,
-  ranks,
   width,
   height,
   scale,
   emphasis,
+  roles,
+  flows,
+  captions,
   selectedId,
   hoveredId,
   describedId,
   draggingId,
-  filter,
   reducedMotion,
   onHover,
   onSelect,
@@ -1193,16 +1639,17 @@ function Graph({
   readonly snapshot: AtlasSnapshot;
   readonly layoutNodes: readonly PlacedNode[];
   readonly layoutEdges: readonly PlacedEdge[];
-  readonly ranks: readonly {readonly index: number; readonly x: number; readonly width: number}[];
   readonly width: number;
   readonly height: number;
   readonly scale: number;
   readonly emphasis: Emphasis;
+  readonly roles: ReadonlyMap<string, NodeRole>;
+  readonly flows: ReadonlyMap<string, ReturnType<typeof presentEdge>>;
+  readonly captions: boolean;
   readonly selectedId: string | null;
   readonly hoveredId: string | null;
   readonly describedId: string | null;
   readonly draggingId: string | null;
-  readonly filter: string;
   readonly reducedMotion: boolean;
   readonly onHover: (id: string | null) => void;
   readonly onSelect: (id: string) => void;
@@ -1367,17 +1814,12 @@ function Graph({
   }, [curves, draggingId, emphasis.edges, layoutEdges, layoutNodes, reducedMotion, selectedId]);
 
   return (
-    <div className="picture" style={{width, height}}>
-      {ranks.map((rank) => (
-        <div
-          key={rank.index}
-          className="band"
-          data-odd={rank.index % 2 === 1 ? 'true' : 'false'}
-          style={{left: rank.x, width: rank.width}}
-        >
-          <span className="rank-label">{rank.index}</span>
-        </div>
-      ))}
+    <div
+      className="picture"
+      data-captions={captions ? 'true' : 'false'}
+      data-detail={detailFor(scale)}
+      style={{width, height}}
+    >
       <svg className="edges" width={width} height={height} aria-hidden="true">
         <defs>
           <marker
@@ -1389,7 +1831,7 @@ function Graph({
             refY="4"
             orient="auto"
           >
-            <path d="M0 0 L8 4 L0 8 Z" fill="#e7e1d4" />
+            <path d="M0 0 L8 4 L0 8 Z" fill="context-stroke" />
           </marker>
           <marker
             id="arrow-bundle"
@@ -1400,7 +1842,7 @@ function Graph({
             refY="4"
             orient="auto"
           >
-            <path d="M0 0 L8 4 L0 8 Z" fill="#b08972" />
+            <path d="M0 0 L8 4 L0 8 Z" fill="context-stroke" />
           </marker>
         </defs>
         {layoutEdges.map((edge) => {
@@ -1418,6 +1860,7 @@ function Graph({
               d={d}
               data-relation={edge.relation}
               data-active={active ? 'true' : 'false'}
+              data-flow={flows.get(edge.id) ?? 'plain'}
               data-cyclic={edge.cyclic ? 'true' : 'false'}
               markerEnd={
                 edge.relation === 'bundle-includes' ? 'url(#arrow-bundle)' : 'url(#arrow-ink)'
@@ -1431,12 +1874,8 @@ function Graph({
         if (!pkg) return null;
         const selected = node.id === selectedId;
         const dragging = node.id === draggingId;
-        const dimmed =
-          filter.length > 0 &&
-          !node.id.toLowerCase().includes(filter) &&
-          !(pkg.files ?? []).some((file) => file.toLowerCase().includes(filter));
         const emphasized = emphasizedNodes.has(node.id);
-        const opacity = dimmed ? 0.2 : emphasized || selected ? 1 : 0.4;
+        const role = roles.get(node.id) ?? 'default';
         const shape = nodeShape(snapshot.kind, pkg);
         return (
           <button
@@ -1452,7 +1891,8 @@ function Graph({
             data-link={pkg.version === 'link' ? 'true' : undefined}
             data-rank={node.rank}
             data-selected={selected ? 'true' : 'false'}
-            data-dimmed={dimmed ? 'true' : 'false'}
+            data-role={role}
+            data-dimmed={role === 'filtered' || role === 'dimmed' ? 'true' : 'false'}
             data-emphasized={emphasized ? 'true' : 'false'}
             data-private={pkg.private ? 'true' : 'false'}
             data-dragging={dragging ? 'true' : 'false'}
@@ -1460,11 +1900,13 @@ function Graph({
               !pkg.private && pkg.id === 'grafyx' && selectedId === null ? 'true' : 'false'
             }
             data-hovered={hoveredId === node.id ? 'true' : 'false'}
+            aria-label={`${pkg.id}, ${roleLabel(role)}`}
+            aria-hidden={role === 'hidden' ? true : undefined}
+            tabIndex={role === 'hidden' ? -1 : 0}
             aria-describedby={describedId === node.id ? 'atlas-tooltip' : undefined}
             style={{
               width: node.width,
               height: node.height,
-              opacity,
               transform: `translate(${node.x}px, ${node.y}px) scale(${selected ? 1.04 : 1})`,
             }}
             onPointerEnter={() => onHover(node.id)}

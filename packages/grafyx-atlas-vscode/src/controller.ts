@@ -102,6 +102,11 @@ export function createAtlasController(options: AtlasControllerOptions): AtlasCon
       host.revealOutput();
       host.showInformation(`Grafyx Atlas is running at ${started.url}`);
     } else await host.openInEditor(started.url);
+    try {
+      await scanned(root);
+    } catch (error) {
+      host.log(error instanceof Error ? error.message : String(error));
+    }
   });
 
   bind('grafyxAtlas.stopMap', async () => {
@@ -221,6 +226,15 @@ export function createAtlasController(options: AtlasControllerOptions): AtlasCon
     await showOnMap(root, 'map');
   });
 
+  bind('grafyxAtlas.revealFile', async (argument) => {
+    const {root, workspace} = await projectRoot(argument);
+    warnIfDirty(root, workspace.dirtyPaths);
+    const snapshot = await scanned(root);
+    const node = await selectNode(snapshot, workspace, 'Part to reveal');
+    if (!node) return;
+    await showOnMap(root, 'map', node.id);
+  });
+
   async function projectRoot(
     argument: unknown,
   ): Promise<{readonly root: string; readonly workspace: WorkspaceContext}> {
@@ -265,6 +279,7 @@ export function createAtlasController(options: AtlasControllerOptions): AtlasCon
     if (snapshot.nodes.length === 0) host.log(EMPTY_LINE);
     if (options.readSettings().diagnostics) host.setDiagnostics(cycleDiagnostics(snapshot));
     else host.clearDiagnostics();
+    host.setStructure(snapshot);
     return snapshot;
   }
 

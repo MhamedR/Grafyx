@@ -1,3 +1,4 @@
+import type {AtlasSnapshot} from 'grafyx-atlas';
 import type {AtlasFileDiagnostic} from './diagnostics.js';
 
 /**
@@ -17,4 +18,6 @@ export interface AtlasHost {
   setDiagnostics(diagnostics: readonly AtlasFileDiagnostic[]): void;
   clearDiagnostics(): void;
   revealOutput(): void;
+  /** Last scan, for the Architecture view. */
+  setStructure(snapshot: AtlasSnapshot | null): void;
 }
