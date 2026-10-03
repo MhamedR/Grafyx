@@ -4,7 +4,7 @@
 
 grafyx/atlas scans a project and draws it as a directed graph: which parts must exist before which others, what a change will reach, what a part stands on, where the order is impossible, and the schedule that falls out of it. It runs as a local web app and exports what you see to Draw.io, PDF, or JPEG.
 
-![grafyx/atlas: start it, explore the map, check impact and upstream, cycles and order, go deeper, and export](https://raw.githubusercontent.com/MhamedR/Grafyx/main/packages/atlas/docs/demo.gif)
+![grafyx/atlas: start it, explore the map, check impact and upstream, cycles and order, read the stats, go deeper, and export](https://raw.githubusercontent.com/MhamedR/Grafyx/main/packages/atlas/docs/demo.gif)
 
 The pictures in this guide are the `src/app` folder of an Angular front end (`rag-frontend`). Every screenshot comes from that project, except the loop under [Cycles](#cycles).
 
@@ -47,7 +47,7 @@ A dependency list tells you what imports what. It does not tell you what order t
 - **Go deeper.** Right-click a folder to see the files inside it and the files one import away.
 - **Inspect anything.** Hover a node and, after a short pause, a tooltip lists its files and edges. Click it to pin those details in the rail. A folder with more than 24 files shows the count instead of every name.
 - **The path.** Beside the wordmark. It follows the selected part, shortens in the middle when it is long, and copies to the clipboard when you click it.
-- **Zoom.** **−**, the current scale, and **+** sit on the graph, with **Search**, focus, and captions. Click the percentage to fit the picture again. The wheel zooms toward the pointer.
+- **Zoom.** **−**, the current scale, and **+** sit on the graph, with **Search**, focus, and captions. Click the percentage to fit the picture again. The wheel zooms toward the pointer. An overview in the corner shows the part in view.
 - **The order strip.** The same schedule as the ranks. Drag its top edge to resize it, or hide it from the handle on the right.
 - **Export** the current picture to Draw.io (editable), PDF, or JPEG.
 - **Keyboard first.** **⌘K** / **Ctrl K** searches. A filter field narrows the graph. Arrow keys walk edges. **?** lists the shortcuts.
@@ -104,11 +104,13 @@ The line under the wordmark sets the one rule: **A → B means A must exist befo
 
 The path beside the wordmark starts as the project root. Select a part and it becomes that part's location. After you go deeper, with nothing selected, it shows the depth you are in. A long path shortens in the middle and keeps the start and the end. Hover it for the full path, and click it to copy. **copied** confirms the clipboard write.
 
-To the left of **export**, **−** and **+** zoom the fitted picture. The percentage between them is the scale. **100%** fits the picture to the frame. Click it to reset zoom and pan. The range is 50% to 275%. The wheel zooms toward the pointer. When the picture is larger than the frame, drag the empty field to move it. **stats** hides these controls.
+The toolbar at the top right of the field holds **Search**, **−**, the scale, **+**, the focus menu, **Captions**, and **?**. **−** and **+** zoom the fitted picture. **100%** fits the picture to the frame. Click the percentage to reset zoom and pan. The range is 50% to 400%. The wheel zooms toward the pointer. When the picture is larger than the frame, drag the empty field to move it. The overview in the bottom right corner shows the whole picture and the part in view; click it to move the view there. **stats** hides the toolbar and the overview.
 
 An arrow runs from the thing that must exist first to the thing that depends on it. On a source map, an imported part points at the part that imports it. So `models → services` means `services` imports `models`.
 
-Folders are drawn as folders and list their file count; loose files are drawn as pages. The strip along the bottom, the filmstrip, is the same schedule as a list, one column per rank. Drag its top edge to give the names more room; they stay at the top of the strip. The handle on the right hides it, and **order** opens it again.
+Folders are drawn as folders and list their file count and size; loose files are drawn as pages with their size.
+
+Select a part and its direct neighbours stay lit in every lens: blue for the parts it depends on, amber for the parts that require it. Everything else dims, unless the lens keeps it lit. The strip along the bottom, the filmstrip, is the same schedule as a list, one column per rank. Drag its top edge to give the names more room; they stay at the top of the strip. The handle on the right hides it, and **order** opens it again.
 
 For `rag-frontend/src/app`:
 
@@ -132,17 +134,17 @@ The five lenses sit at the top of the left rail. Each one has a sentence under i
 
 **map** is the whole source, in dependency order: "The source, in dependency order."
 
-Every node and edge is lit. Click a node to select it, and the rail lists its path, its files, and every edge touching it. Hover the same node and, after a short pause, a tooltip repeats that, with its rank. A pass across the map leaves the tooltip closed. Moving to a nearby node keeps the open tooltip until you rest on the next one. A folder with more than 24 files shows the count, such as `30 files`, in the rail and in the tooltip. Shorter lists stay listed, with each file's size in the rail. The filter still matches file names that are not drawn. Each edge is marked **stands on** (this part depends on that one) or **before** (this part must exist before that one).
+With nothing selected, every node and edge is lit. Click a node to select it: its direct neighbours stay lit and the rest dims. The rail lists its kind, its path, its files with their sizes, and its dependencies and dependents. **Dependencies** opens **upstream** and keeps only what the part stands on, **Dependents** opens **impact** and keeps only what it reaches, **Neighborhood** returns to **map** with one hop around it, and **Copy id** copies its name. Hover the same node and, after a short pause, a tooltip repeats that, with its size and rank. A pass across the map leaves the tooltip closed. Moving to a nearby node keeps the open tooltip until you rest on the next one. A folder with more than 24 files shows the count, such as `30 files`, in the rail and in the tooltip. Shorter lists stay listed, with each file's size in the rail. The filter still matches file names that are not drawn. In the tooltip, each edge is marked **stands on** (this part depends on that one) or **before** (this part must exist before that one).
 
-Here `services` is selected. It holds six files, stands on `models`, and comes before `app.component.ts`, `components`, `guards`, and `interceptors`.
+Here `services` is selected. It holds six files, 9.6 KB, stands on `models` (blue), and comes before `app.component.ts`, `components`, `guards`, and `interceptors` (amber). `app.routes.ts` and `app.config.ts` are not direct neighbours, so they dim.
 
 ### Impact
 
-![Impact of services: everything downstream stays lit, models dims](https://raw.githubusercontent.com/MhamedR/Grafyx/main/packages/atlas/docs/impact.png)
+![Impact of services: everything downstream stays lit](https://raw.githubusercontent.com/MhamedR/Grafyx/main/packages/atlas/docs/impact.png)
 
 Select a part, then **impact**: "What must change if this part changes."
 
-With `services` selected, everything downstream stays lit: `app.component.ts`, `components`, `guards`, `interceptors`, `app.routes.ts`, and `app.config.ts`. `models` dims, because a change in `services` cannot reach it. The edges into the lit parts are the paths the change travels.
+With `services` selected, everything downstream stays lit: `app.component.ts`, `components`, `guards`, and `interceptors` in amber, because they import `services` directly, then `app.routes.ts` and `app.config.ts`. The edges into the lit parts are the paths the change travels. A change in `services` cannot reach `models`; it stays lit in blue only because it is a direct dependency of the selection.
 
 ### Upstream
 
@@ -150,7 +152,7 @@ With `services` selected, everything downstream stays lit: `app.component.ts`, `
 
 Select a part, then **upstream**: "What this part stands on."
 
-`app.routes.ts` imports `components` and `guards` directly, and through them `services` and `models`. Those stay lit. `app.component.ts`, `interceptors`, and `app.config.ts` dim: `app.config.ts` imports the routes, so it is downstream, not upstream.
+`app.routes.ts` imports `components` and `guards` directly (blue), and through them `services` and `models`. Those stay lit. `app.component.ts` and `interceptors` dim. `app.config.ts` imports the routes, so it is downstream, not upstream; it stays lit in amber only because it is a direct neighbour of the selection.
 
 ### Cycles
 
@@ -162,7 +164,7 @@ When a project does contain a loop, this lens keeps it lit and dims everything e
 
 ![Cycles lens on a small example: auth and users import each other](https://raw.githubusercontent.com/MhamedR/Grafyx/main/packages/atlas/docs/cycles-loop.png)
 
-This second picture is a four-file example made for this guide, since the Angular app has no loop to show. `auth/session.ts` imports `users/user.ts`, and `users/user.ts` imports `auth/token.ts`, so `auth` and `users` each stand on the other.
+This second picture is a five-file example made for this guide, since the Angular app has no loop to show. `auth/session.ts` imports `users/user.ts`, and `users/user.ts` imports `auth/token.ts`, so `auth` and `users` each stand on the other.
 
 ### Order
 
@@ -215,7 +217,7 @@ The file name is the last folder of `--root` and the lens: `<project>-<lens>.<ex
 
 ![Exported JPEG: impact of services](https://raw.githubusercontent.com/MhamedR/Grafyx/main/packages/atlas/docs/export-impact.jpeg)
 
-Dimmed nodes keep their dimmed opacity in every format, so an exported impact or upstream picture reads the same way as the screen. The button is disabled while there is nothing to draw. If an export fails, the reason appears under the button.
+The file keeps the lens: in every format, parts outside it are drawn faded, so an exported impact or upstream picture reads like the screen. The blue and amber neighbour colours stay on screen. That is why `models`, which a change in `services` cannot reach, is faded in this export. The button is disabled while there is nothing to draw. If an export fails, the reason appears under the button.
 
 Export is a browser feature of the map. The library API does not expose it.
 
@@ -235,6 +237,7 @@ Export is a browser feature of the map. The library API does not expose it.
 | Click the zoom percentage, or **F**      | Fit the graph                                                                                           |
 | Wheel                                    | Zoom toward the pointer                                                                                 |
 | Drag the empty field                     | Pan, once the picture is larger than the frame                                                          |
+| Click the overview                       | Move the view to that spot                                                                              |
 | Drag the top edge of the filmstrip       | Resize it                                                                                               |
 | **hide** / **order**                     | Collapse the filmstrip, or open it again                                                                |
 | Right-click a folder                     | **Go deeper**                                                                                           |
