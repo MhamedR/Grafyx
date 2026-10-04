@@ -4,5 +4,7 @@ scripts/**
 tsconfig.json
 **/*.ts
 **/*.map
+**/*.vsix
 node_modules/**
 .gitignore
+icon.svg

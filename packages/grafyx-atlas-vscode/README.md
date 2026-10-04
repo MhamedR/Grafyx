@@ -42,19 +42,23 @@ Right-click a file and the command selects the part that contains it. Right-clic
 
 ## Install
 
-Search the Extensions view for **Grafyx Atlas**, or install the published id:
+Search the Extensions view in **Cursor** or VS Code for **Grafyx Atlas**, or install the published id:
 
 ```bash
+cursor --install-extension grafyx.grafyx-atlas-vscode
 code --install-extension grafyx.grafyx-atlas-vscode
 ```
+
+Cursor's marketplace is [Open VSX](https://open-vsx.org/extension/grafyx/grafyx-atlas-vscode), not the Microsoft Marketplace. The listing id is `grafyx.grafyx-atlas-vscode`.
 
 From a packaged file:
 
 ```bash
-code --install-extension grafyx-atlas-vscode-1.1.0.vsix
+cursor --install-extension grafyx-atlas-vscode-2.0.0.vsix
+code --install-extension grafyx-atlas-vscode-2.0.0.vsix
 ```
 
-The extension runs in the workspace extension host. It needs VS Code 1.95 or newer and Node.js 20 or newer.
+The extension runs in the workspace extension host. It needs VS Code 1.95 or newer (or a current Cursor) and Node.js 20 or newer.
 
 ## Open the map
 
@@ -264,7 +268,24 @@ npm run typecheck
 npm run package -w grafyx-atlas-vscode
 ```
 
-`npm test` builds grafyx and grafyx-atlas first, then runs this package's tests with the rest of the suite. The package command writes `grafyx-atlas-vscode-1.1.0.vsix` in this directory. The vsix contains the bundled adapter and the prebuilt map UI.
+`npm test` builds grafyx and grafyx-atlas first, then runs this package's tests with the rest of the suite. The package command writes `grafyx-atlas-vscode-2.0.0.vsix` in this directory. The vsix contains the bundled adapter and the prebuilt map UI.
+
+### Publish to Cursor
+
+Cursor indexes [Open VSX](https://open-vsx.org/), not the Microsoft Marketplace. The publisher namespace is `grafyx`.
+
+1. Create an [Eclipse account](https://accounts.eclipse.org/) and set **GitHub Username** to the same GitHub account you use on [open-vsx.org](https://open-vsx.org/).
+2. Sign in to Open VSX with GitHub, open **Settings**, log in with Eclipse, and sign the Publisher Agreement.
+3. Generate an access token under **Settings → Access Tokens**.
+4. Create the namespace once, then publish the vsix:
+
+```bash
+export OVSX_PAT='your-open-vsx-token'
+npx ovsx create-namespace grafyx
+npm run publish:openvsx -w grafyx-atlas-vscode
+```
+
+The listing appears at [open-vsx.org/extension/grafyx/grafyx-atlas-vscode](https://open-vsx.org/extension/grafyx/grafyx-atlas-vscode). Cursor search can lag a few minutes behind that page. To claim the verified namespace later, follow [Open VSX namespace access](https://github.com/eclipse/openvsx/wiki/Namespace-Access).
 
 See [CONTRIBUTING.md](https://github.com/MhamedR/Grafyx/blob/main/CONTRIBUTING.md) for the repository's checks.
 

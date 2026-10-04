@@ -1,12 +1,16 @@
 {
   "name": "grafyx-atlas-vscode",
   "displayName": "Grafyx Atlas",
-  "description": "Open the grafyx/atlas map of a project from VS Code.",
+  "description": "Open the grafyx/atlas map of a project from VS Code or Cursor.",
   "version": "2.0.0",
   "private": true,
   "publisher": "grafyx",
   "icon": "icon.png",
   "license": "ISC",
+  "homepage": "https://github.com/MhamedR/Grafyx/tree/main/packages/grafyx-atlas-vscode",
+  "bugs": {
+    "url": "https://github.com/MhamedR/Grafyx/issues"
+  },
   "type": "module",
   "engines": {
     "node": ">=20",
@@ -234,6 +238,7 @@
   "scripts": {
     "build": "node scripts/build.mjs",
     "package": "npm run build && vsce package --no-dependencies",
+    "publish:openvsx": "npm run package && ovsx publish grafyx-atlas-vscode-$npm_package_version.vsix",
     "test": "node --import tsx --test --test-concurrency=1 test/*.test.ts"
   },
   "dependencies": {
@@ -243,6 +248,7 @@
     "@types/node": "^26.6.2",
     "@types/vscode": "^1.95.0",
     "@vscode/vsce": "^3.6.0",
-    "esbuild": "^0.25.10"
+    "esbuild": "^0.25.10",
+    "ovsx": "^1.2.0"
   }
 }
